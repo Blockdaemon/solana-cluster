@@ -4,6 +4,8 @@ This repo will contain scripts that enable efficient Solana snapshot creation an
 
 **Work In Progress!** – please come back later.
 
+Brought to you by [Blockdaemon](https://blockdaemon.com/) and [Triton One](https://triton.one/#/).
+
 ## Goals
 
 - Speed up RPC and validator node startup time
