@@ -1,0 +1,62 @@
+scrape_interval: 15s
+
+target_groups:
+  # A group of nodes on the same Solana network.
+  - group: mainnet
+
+    # ------------------------------------------------
+    # Snapshot retrieval
+    # ------------------------------------------------
+
+    # URL scheme, use "http" or "https".
+    scheme: http
+
+    # Snapshot path on a node.
+    snapshot_path: "/snapshot/tar.bz2"
+
+    # ------------------------------------------------
+    # Discovery
+    # ------------------------------------------------
+
+    # Discover targets from a hardcoded set of nodes.
+    static_targets:
+      targets:
+        - solana-mainnet-1.example.org:8899
+        - solana-mainnet-2.example.org:8899
+        - solana-mainnet-3.example.org:8899
+
+    # Discover targets from a JSON file.
+    #
+    # file_targets:
+    #   path: <filename>
+
+    # Discover targets from a HTTP server.
+    #
+    # http_targets:
+    #   url: <string>
+    #   basic_auth: <...>
+    #   bearer_auth: <...>
+    #   tls_config: <...>
+
+    # ------------------------------------------------
+    # Authentication
+    # ------------------------------------------------
+
+    # Set up RFC 7617 Basic Authentication on requests.
+    #
+    # basic_auth:
+    #   username: <string>
+    #   password: <string>
+
+    # Set up a Bearer Auth token.
+    #
+    # bearer_auth:
+    #   token: <string>
+
+    # Set up TLS config (requires https scheme).
+    #
+    # tls_config:
+    #   ca_file: <path>
+    #   cert_file: <path>
+    #   key_file: <path>
+    #   insecure_skip_verify: <boolean>
