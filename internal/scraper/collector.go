@@ -7,7 +7,7 @@ type Collector struct {
 }
 
 func NewCollector() *Collector {
-	panic("not implemented")
+	return &Collector{} // TODO not implemented
 }
 
 func (c *Collector) Probes() chan<- ProbeResult {

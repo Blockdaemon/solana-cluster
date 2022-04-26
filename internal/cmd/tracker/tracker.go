@@ -45,7 +45,7 @@ func run() {
 	// Install signal handlers.
 	onReload := make(chan os.Signal, 1)
 	signal.Notify(onReload, syscall.SIGHUP)
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM) //lint:ignore SA4006 linter bugged
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
 	// Install HTTP handlers.
@@ -72,7 +72,7 @@ func run() {
 	collector := scraper.NewCollector()
 
 	// Start services.
-	group, ctx := errgroup.WithContext(ctx)
+	group, _ := errgroup.WithContext(ctx)
 	group.Go(func() error {
 		return http.ListenAndServe(listen, nil)
 	})
@@ -81,14 +81,14 @@ func run() {
 	var configObj atomic.Value
 	group.Go(func() error {
 		_ = configObj
-		panic("reloader not implemented")
+		return nil // TODO not implemented
 	})
 
 	// Create scrape managers.
 	manager := scraper.NewManager(collector.Probes())
 	group.Go(func() error {
 		_ = manager
-		panic("manager not implemented")
+		return nil // TODO not implemented
 	})
 
 	// Wait until crash or graceful exit.
