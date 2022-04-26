@@ -37,7 +37,7 @@ func init() {
 
 func run() {
 	log := logger.GetLogger()
-	listener, listenAddrs, err := netx.ListenInterface("tcp", netInterface, listenPort, log)
+	listener, listenAddrs, err := netx.ListenTCPInterface("tcp", netInterface, listenPort)
 	if err != nil {
 		cobra.CheckErr(err)
 	}
