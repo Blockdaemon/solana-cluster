@@ -31,7 +31,7 @@ type SnapshotFile struct {
 func (s *SnapshotFile) Compare(o *SnapshotFile) int {
 	if s.Slot < o.Slot {
 		return -1
-	} else if o.Slot > o.Slot {
+	} else if s.Slot > o.Slot {
 		return +1
 	} else if s.BaseSlot < o.BaseSlot {
 		return -1
