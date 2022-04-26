@@ -45,7 +45,7 @@ func run() {
 	// Install signal handlers.
 	onReload := make(chan os.Signal, 1)
 	signal.Notify(onReload, syscall.SIGHUP)
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM) //lint:ignore SA4006 linter bugged
 	defer cancel()
 
 	// Install HTTP handlers.
