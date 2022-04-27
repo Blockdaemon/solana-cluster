@@ -6,6 +6,7 @@ require (
 	github.com/gagliardetto/solana-go v1.4.0
 	github.com/gin-contrib/zap v0.0.2
 	github.com/gin-gonic/gin v1.7.7
+	github.com/hashicorp/go-memdb v1.3.2
 	github.com/prometheus/client_golang v1.12.1
 	github.com/samber/lo v1.16.0
 	github.com/spf13/afero v1.8.2
@@ -37,6 +38,8 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/hashicorp/go-immutable-radix v1.3.0 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.1 // indirect
