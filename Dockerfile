@@ -35,4 +35,4 @@ USER solcluster
 ENTRYPOINT ["/usr/local/bin/solcluster"]
 CMD ["sidecar"]
 
-LABEL org.opencontainers.image.source="https://github.com/Blockdaemon/solana-snapshot-service"
+LABEL org.opencontainers.image.source="https://github.com/Blockdaemon/solana-cluster"
