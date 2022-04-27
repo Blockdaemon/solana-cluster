@@ -45,6 +45,7 @@ func run() {
 		log.Info("Listening for conns", zap.Stringer("addr", &addr))
 	}
 
+	gin.SetMode(gin.ReleaseMode)
 	server := gin.New()
 	httpLog := log.Named("http")
 	server.Use(ginzap.Ginzap(httpLog, time.RFC3339, true))

@@ -1,24 +1,18 @@
 package ledger
 
 import (
-	"io/fs"
-	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/gagliardetto/solana-go"
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.blockdaemon.com/solana/cluster-manager/internal/ledgertest"
 	"go.blockdaemon.com/solana/cluster-manager/types"
 )
 
 func TestListSnapshots(t *testing.T) {
-	root := afero.NewMemMapFs()
-	const ledgerPath = "data/ledger"
-	fakeTime := time.Now()
-	require.NoError(t, root.MkdirAll(ledgerPath, 0755))
-
+	// Construct a new ledger dir with a bunch of snapshots.
+	root := ledgertest.NewFS(t)
 	fakeFiles := []string{
 		"snapshot-50-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
 		"incremental-snapshot-50-100-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
@@ -27,16 +21,10 @@ func TestListSnapshots(t *testing.T) {
 		"incremental-snapshot-200-300-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
 	}
 	for _, name := range fakeFiles {
-		filePath := filepath.Join(ledgerPath, name)
-		file, err := root.Create(filePath)
-		require.NoError(t, err)
-		require.NoError(t, file.Truncate(1))
-		require.NoError(t, file.Close())
-		require.NoError(t, root.Chtimes(filePath, fakeTime, fakeTime))
+		root.AddFakeFile(t, name)
 	}
+	ledgerDir := root.GetLedgerDir(t)
 
-	ledgerDir, err := fs.Sub(afero.NewIOFS(root), ledgerPath)
-	require.NoError(t, err)
 	snapshots, err := ListSnapshots(ledgerDir)
 	require.NoError(t, err)
 
@@ -53,7 +41,7 @@ func TestListSnapshots(t *testing.T) {
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.bz2",
 						Size:     1,
-						ModTime:  &fakeTime,
+						ModTime:  &root.DummyTime,
 					},
 				},
 			},
@@ -68,7 +56,7 @@ func TestListSnapshots(t *testing.T) {
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.bz2",
 						Size:     1,
-						ModTime:  &fakeTime,
+						ModTime:  &root.DummyTime,
 					},
 				},
 			},
@@ -83,7 +71,7 @@ func TestListSnapshots(t *testing.T) {
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.bz2",
 						Size:     1,
-						ModTime:  &fakeTime,
+						ModTime:  &root.DummyTime,
 					},
 					{
 						FileName: "incremental-snapshot-50-100-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
@@ -92,7 +80,7 @@ func TestListSnapshots(t *testing.T) {
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.zst",
 						Size:     1,
-						ModTime:  &fakeTime,
+						ModTime:  &root.DummyTime,
 					},
 				},
 			},
@@ -107,7 +95,7 @@ func TestListSnapshots(t *testing.T) {
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.bz2",
 						Size:     1,
-						ModTime:  &fakeTime,
+						ModTime:  &root.DummyTime,
 					},
 					{
 						FileName: "incremental-snapshot-100-200-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
@@ -116,7 +104,7 @@ func TestListSnapshots(t *testing.T) {
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.zst",
 						Size:     1,
-						ModTime:  &fakeTime,
+						ModTime:  &root.DummyTime,
 					},
 				},
 			},
@@ -131,7 +119,7 @@ func TestListSnapshots(t *testing.T) {
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.bz2",
 						Size:     1,
-						ModTime:  &fakeTime,
+						ModTime:  &root.DummyTime,
 					},
 					{
 						FileName: "incremental-snapshot-100-200-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
@@ -140,7 +128,7 @@ func TestListSnapshots(t *testing.T) {
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.zst",
 						Size:     1,
-						ModTime:  &fakeTime,
+						ModTime:  &root.DummyTime,
 					},
 					{
 						FileName: "incremental-snapshot-200-300-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
@@ -149,7 +137,7 @@ func TestListSnapshots(t *testing.T) {
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.zst",
 						Size:     1,
-						ModTime:  &fakeTime,
+						ModTime:  &root.DummyTime,
 					},
 				},
 			},

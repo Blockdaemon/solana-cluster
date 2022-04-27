@@ -14,19 +14,19 @@ import (
 
 // Client accesses the sidecar API.
 type Client struct {
-	Resty   *resty.Client
-	BaseURL string
+	resty *resty.Client
 }
 
 func NewClient(sidecarURL string) *Client {
-	return &Client{
-		Resty:   resty.New().SetHostURL(sidecarURL),
-		BaseURL: sidecarURL,
-	}
+	return NewClientWithResty(resty.New().SetHostURL(sidecarURL))
+}
+
+func NewClientWithResty(client *resty.Client) *Client {
+	return &Client{resty: client}
 }
 
 func (c *Client) ListSnapshots(ctx context.Context) (infos []*types.SnapshotInfo, err error) {
-	res, err := c.Resty.R().
+	res, err := c.resty.R().
 		SetContext(ctx).
 		SetHeader("accept", "application/json").
 		SetResult(&infos).

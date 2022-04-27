@@ -22,6 +22,7 @@ require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.10 // indirect
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/aybabtme/rgbterm v0.0.0-20170906152045-cc83f3b3ce59 // indirect
+	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
