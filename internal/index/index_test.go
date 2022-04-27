@@ -68,12 +68,12 @@ func TestDB(t *testing.T) {
 	assert.Len(t, db.GetSnapshotsByTarget("host2"), 0)
 	assert.Len(t, db.GetBestSnapshots(-1), 0)
 
-	assert.Equal(t, 0, db.UpsertSnapshots(snapshotEntry1))
+	assert.Equal(t, 0, db.UpsertSnapshots("host1", snapshotEntry1))
 	assert.Len(t, db.GetSnapshotsByTarget("host1"), 1)
 	assert.Len(t, db.GetSnapshotsByTarget("host2"), 0)
 	assert.Len(t, db.GetBestSnapshots(-1), 1)
 
-	assert.Equal(t, 1, db.UpsertSnapshots(snapshotEntry1, snapshotEntry2))
+	assert.Equal(t, 0, db.UpsertSnapshots("host1", snapshotEntry1, snapshotEntry2))
 	assert.Len(t, db.GetSnapshotsByTarget("host1"), 2)
 	assert.Len(t, db.GetSnapshotsByTarget("host2"), 0)
 	assert.Equal(t,
@@ -83,7 +83,7 @@ func TestDB(t *testing.T) {
 		},
 		db.GetBestSnapshots(-1))
 
-	assert.Equal(t, 1, db.UpsertSnapshots(snapshotEntry2, snapshotEntry3))
+	assert.Equal(t, 0, db.UpsertSnapshots("host1", snapshotEntry2, snapshotEntry3))
 	assert.Len(t, db.GetSnapshotsByTarget("host1"), 2)
 	assert.Len(t, db.GetSnapshotsByTarget("host2"), 1)
 	assert.Equal(t,
@@ -103,7 +103,7 @@ func TestDB(t *testing.T) {
 		},
 		db.GetBestSnapshots(-1))
 
-	assert.Equal(t, 0, db.UpsertSnapshots(snapshotEntry1, snapshotEntry2))
+	assert.Equal(t, 0, db.UpsertSnapshots("host1", snapshotEntry1, snapshotEntry2))
 
 	assert.Equal(t, 1, db.DeleteOldSnapshots(snapshotEntry2.UpdatedAt.Add(time.Second)))
 	assert.Len(t, db.GetSnapshotsByTarget("host1"), 1)

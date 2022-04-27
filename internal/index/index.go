@@ -36,20 +36,8 @@ func NewDB() *DB {
 	}
 }
 
-// DeleteSnapshotsByTarget deletes all snapshots owned by a given target.
-// Returns the number
-func (d *DB) DeleteSnapshotsByTarget(target string) int {
-	txn := d.DB.Txn(true)
-	defer txn.Abort()
-	n, err := txn.DeleteAll(tableSnapshotEntry, "id_prefix", target)
-	if err != nil {
-		panic("failed to delete snapshots by target: " + err.Error())
-	}
-	txn.Commit()
-	return n
-}
-
 // UpsertSnapshots inserts the given snapshot entries.
+// All entries must come from the same given target.
 //
 // Snapshots that have the same (target, slot) combination get replaced.
 // Returns the number of snapshots that have been replaced (excluding new inserts).
@@ -57,9 +45,6 @@ func (d *DB) UpsertSnapshots(entries ...*SnapshotEntry) (numReplaced int) {
 	txn := d.DB.Txn(true)
 	defer txn.Abort()
 	for _, entry := range entries {
-		if deleteSnapshotEntry(txn, &entry.SnapshotKey) {
-			numReplaced++
-		}
 		insertSnapshotEntry(txn, entry)
 	}
 	txn.Commit()
@@ -125,18 +110,23 @@ func (d *DB) DeleteOldSnapshots(minTime time.Time) (n int) {
 	return
 }
 
-func deleteSnapshotEntry(txn *memdb.Txn, key *SnapshotKey) bool {
-	existing, err := txn.First(tableSnapshotEntry, "id", key.Target, key.InverseSlot)
+// DeleteSnapshotsByTarget deletes all snapshots owned by a given target.
+// Returns the number of deletions made.
+func (d *DB) DeleteSnapshotsByTarget(target string) int {
+	txn := d.DB.Txn(true)
+	defer txn.Abort()
+	n := deleteSnapshotsByTarget(txn, target)
+	txn.Commit()
+	return n
+}
+
+func deleteSnapshotsByTarget(txn *memdb.Txn, target string) int {
+	n, err := txn.DeleteAll(tableSnapshotEntry, "id_prefix", target)
 	if err != nil {
-		panic("lookup failed: " + err.Error())
+		panic("failed to delete snapshots by target: " + err.Error())
 	}
-	if existing == nil {
-		return false
-	}
-	if err := txn.Delete(tableSnapshotEntry, existing); err != nil {
-		panic("failed to delete existing snapshot entry: " + err.Error())
-	}
-	return true
+	txn.Commit()
+	return n
 }
 
 func insertSnapshotEntry(txn *memdb.Txn, snap *SnapshotEntry) {
