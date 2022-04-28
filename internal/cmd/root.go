@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"go.blockdaemon.com/solana/cluster-manager/internal/cmd/fetch"
 	"go.blockdaemon.com/solana/cluster-manager/internal/cmd/sidecar"
 	"go.blockdaemon.com/solana/cluster-manager/internal/cmd/tracker"
 )
@@ -29,6 +30,7 @@ var Cmd = cobra.Command{
 
 func init() {
 	Cmd.AddCommand(
+		&fetch.Cmd,
 		&sidecar.Cmd,
 		&tracker.Cmd,
 	)

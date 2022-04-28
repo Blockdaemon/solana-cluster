@@ -20,6 +20,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.blockdaemon.com/solana/cluster-manager/internal/index"
+	"go.blockdaemon.com/solana/cluster-manager/types"
 )
 
 // Handler implements the tracker API methods.
@@ -50,8 +51,13 @@ func (h *Handler) GetBestSnapshots(c *gin.Context) {
 		query.Max = maxItems
 	}
 	entries := h.DB.GetBestSnapshots(query.Max)
-	if len(entries) == 0 {
-		entries = make([]*index.SnapshotEntry, 0)
+	sources := make([]types.SnapshotSource, len(entries))
+	for i, entry := range entries {
+		sources[i] = types.SnapshotSource{
+			SnapshotInfo: *entry.Info,
+			Target:       entry.Target,
+			UpdatedAt:    entry.UpdatedAt,
+		}
 	}
-	c.JSON(http.StatusOK, entries)
+	c.JSON(http.StatusOK, sources)
 }

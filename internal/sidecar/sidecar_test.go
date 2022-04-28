@@ -45,7 +45,7 @@ func TestHandler(t *testing.T) {
 	handler.RegisterHandlers(engine.Group("/v1"))
 
 	server := httptest.NewServer(engine)
-	client := fetch.NewClientWithResty(
+	client := fetch.NewSidecarClientWithResty(
 		resty.NewWithClient(server.Client()).
 			SetHostURL(server.URL))
 

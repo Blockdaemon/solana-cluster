@@ -48,7 +48,6 @@ func (d *DB) UpsertSnapshots(entries ...*SnapshotEntry) {
 		insertSnapshotEntry(txn, entry)
 	}
 	txn.Commit()
-	return
 }
 
 // GetSnapshotsByTarget returns all snapshots served by a host

@@ -21,6 +21,13 @@ import (
 	"github.com/gagliardetto/solana-go"
 )
 
+// SnapshotSource describes a snapshot, and where to get it from.
+type SnapshotSource struct {
+	SnapshotInfo
+	Target    string
+	UpdatedAt time.Time
+}
+
 // SnapshotInfo describes a snapshot.
 type SnapshotInfo struct {
 	Slot      uint64          `json:"slot"`

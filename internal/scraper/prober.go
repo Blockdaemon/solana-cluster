@@ -93,5 +93,5 @@ func (p *Prober) Probe(ctx context.Context, target string) ([]*types.SnapshotInf
 		Host:   target,
 		Path:   p.snapshotPath,
 	}
-	return fetch.NewClient(u.String()).ListSnapshots(ctx)
+	return fetch.NewSidecarClient(u.String()).ListSnapshots(ctx)
 }

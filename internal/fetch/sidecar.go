@@ -26,20 +26,20 @@ import (
 
 // TODO rewrite this package to use OpenAPI code gen
 
-// Client accesses the sidecar API.
-type Client struct {
+// SidecarClient accesses the sidecar API.
+type SidecarClient struct {
 	resty *resty.Client
 }
 
-func NewClient(sidecarURL string) *Client {
-	return NewClientWithResty(resty.New().SetHostURL(sidecarURL))
+func NewSidecarClient(sidecarURL string) *SidecarClient {
+	return NewSidecarClientWithResty(resty.New().SetHostURL(sidecarURL))
 }
 
-func NewClientWithResty(client *resty.Client) *Client {
-	return &Client{resty: client}
+func NewSidecarClientWithResty(client *resty.Client) *SidecarClient {
+	return &SidecarClient{resty: client}
 }
 
-func (c *Client) ListSnapshots(ctx context.Context) (infos []*types.SnapshotInfo, err error) {
+func (c *SidecarClient) ListSnapshots(ctx context.Context) (infos []*types.SnapshotInfo, err error) {
 	res, err := c.resty.R().
 		SetContext(ctx).
 		SetHeader("accept", "application/json").
