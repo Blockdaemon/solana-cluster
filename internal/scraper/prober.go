@@ -29,10 +29,10 @@ import (
 
 // Prober checks snapshot info from Solana nodes.
 type Prober struct {
-	client       *http.Client
-	scheme       string
-	snapshotPath string
-	header       http.Header
+	client  *http.Client
+	scheme  string
+	apiPath string
+	header  http.Header
 }
 
 func NewProber(group *types.TargetGroup) (*Prober, error) {
@@ -79,10 +79,10 @@ func NewProber(group *types.TargetGroup) (*Prober, error) {
 	}
 
 	return &Prober{
-		client:       client,
-		scheme:       group.Scheme,
-		snapshotPath: group.SnapshotPath,
-		header:       header,
+		client:  client,
+		scheme:  group.Scheme,
+		apiPath: group.APIPath,
+		header:  header,
 	}, nil
 }
 
@@ -91,7 +91,7 @@ func (p *Prober) Probe(ctx context.Context, target string) ([]*types.SnapshotInf
 	u := url.URL{
 		Scheme: p.scheme,
 		Host:   target,
-		Path:   p.snapshotPath,
+		Path:   p.apiPath,
 	}
 	return fetch.NewSidecarClient(u.String()).ListSnapshots(ctx)
 }

@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"go.blockdaemon.com/solana/cluster-manager/types"
 	"gopkg.in/resty.v1"
@@ -37,10 +38,11 @@ func NewTrackerClientWithResty(client *resty.Client) *TrackerClient {
 	return &TrackerClient{resty: client}
 }
 
-func (c *TrackerClient) GetBestSnapshots(ctx context.Context) (sources []types.SnapshotSource, err error) {
+func (c *TrackerClient) GetBestSnapshots(ctx context.Context, count int) (sources []types.SnapshotSource, err error) {
 	res, err := c.resty.R().
 		SetContext(ctx).
 		SetHeader("accept", "application/json").
+		SetQueryParam("max", strconv.Itoa(count)).
 		SetResult(&sources).
 		Get("/v1/best_snapshots")
 	if err != nil {

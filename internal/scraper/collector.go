@@ -15,24 +15,34 @@
 package scraper
 
 import (
+	"sync/atomic"
 	"time"
 
 	"go.blockdaemon.com/solana/cluster-manager/internal/index"
 	"go.blockdaemon.com/solana/cluster-manager/types"
+	"go.uber.org/zap"
 )
 
 // Collector streams probe results into the database.
 type Collector struct {
 	resChan chan ProbeResult
 	DB      *index.DB
+	Log     *zap.Logger
+
+	closed uint32
 }
 
 func NewCollector(db *index.DB) *Collector {
 	this := &Collector{
-		DB: db,
+		resChan: make(chan ProbeResult),
+		DB:      db,
+		Log:     zap.NewNop(),
 	}
-	go this.run()
 	return this
+}
+
+func (c *Collector) Start() {
+	go c.run()
 }
 
 // Probes returns a send-channel that collects and indexes probe results.
@@ -42,11 +52,22 @@ func (c *Collector) Probes() chan<- ProbeResult {
 
 // Close stops the collector and closes the send-channel.
 func (c *Collector) Close() {
-	close(c.resChan)
+	if atomic.CompareAndSwapUint32(&c.closed, 0, 1) {
+		close(c.resChan)
+	}
 }
 
 func (c *Collector) run() {
 	for res := range c.resChan {
+		if res.Err != nil {
+			c.Log.Warn("Scrape failed",
+				zap.String("target", res.Target),
+				zap.Error(res.Err))
+			continue
+		}
+		c.Log.Debug("Scrape success",
+			zap.String("target", res.Target),
+			zap.Int("num_snapshots", len(res.Infos)))
 		c.DB.DeleteSnapshotsByTarget(res.Target)
 		entries := make([]*index.SnapshotEntry, len(res.Infos))
 		for i, info := range res.Infos {
@@ -56,6 +77,7 @@ func (c *Collector) run() {
 				UpdatedAt:   res.Time,
 			}
 		}
+		c.DB.UpsertSnapshots(entries...)
 	}
 }
 

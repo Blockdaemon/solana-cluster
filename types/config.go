@@ -44,12 +44,12 @@ func LoadConfig(filePath string) (*Config, error) {
 
 // TargetGroup explains how to retrieve snapshots from a group of Solana nodes.
 type TargetGroup struct {
-	Group        string      `json:"group"`
-	Scheme       string      `json:"scheme"`
-	SnapshotPath string      `json:"snapshot_path"`
-	BasicAuth    *BasicAuth  `json:"basic_auth"`
-	BearerAuth   *BearerAuth `json:"bearer_auth"`
-	TLSConfig    *TLSConfig  `json:"tls_config"`
+	Group      string      `json:"group"`
+	Scheme     string      `json:"scheme"`
+	APIPath    string      `json:"api_path"`
+	BasicAuth  *BasicAuth  `json:"basic_auth"`
+	BearerAuth *BearerAuth `json:"bearer_auth"`
+	TLSConfig  *TLSConfig  `json:"tls_config"`
 
 	StaticTargets *StaticTargets `json:"static_targets"`
 	FileTargets   *FileTargets   `json:"file_targets"`
