@@ -66,7 +66,9 @@ func TestMergeListeners(t *testing.T) {
 			w.WriteHeader(http.StatusNoContent)
 		}),
 	}
-	go server.Serve(merged)
+	go func() {
+		_ = server.Serve(merged)
+	}()
 
 	pingUntilAwake(t, "http://"+l1.Addr().String())
 
@@ -96,7 +98,9 @@ func TestMergeListeners_ExternalClose(t *testing.T) {
 			w.WriteHeader(http.StatusNoContent)
 		}),
 	}
-	go server.Serve(merged)
+	go func() {
+		_ = server.Serve(merged)
+	}()
 
 	pingUntilAwake(t, "http://"+l1.Addr().String())
 
