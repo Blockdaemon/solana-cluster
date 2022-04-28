@@ -28,11 +28,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.CONTAINER_REGISTRY_SECRET }}
 
-      # TODO: Push not set up yet
-      #- uses: docker/build-push-action@v2
-      #  with:
-      #    context: .
-      #    platforms: linux/amd64,linux/arm64
-      #    push: true
-      #    build-args: GITHUB_SHA=${{ github.sha }}
-      #    tags: ${{ steps.meta.outputs.tags }}
+      - uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: GITHUB_SHA=${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
