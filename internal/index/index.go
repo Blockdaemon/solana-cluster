@@ -41,7 +41,7 @@ func NewDB() *DB {
 //
 // Snapshots that have the same (target, slot) combination get replaced.
 // Returns the number of snapshots that have been replaced (excluding new inserts).
-func (d *DB) UpsertSnapshots(entries ...*SnapshotEntry) (numReplaced int) {
+func (d *DB) UpsertSnapshots(entries ...*SnapshotEntry) {
 	txn := d.DB.Txn(true)
 	defer txn.Abort()
 	for _, entry := range entries {
@@ -115,12 +115,6 @@ func (d *DB) DeleteOldSnapshots(minTime time.Time) (n int) {
 func (d *DB) DeleteSnapshotsByTarget(target string) int {
 	txn := d.DB.Txn(true)
 	defer txn.Abort()
-	n := deleteSnapshotsByTarget(txn, target)
-	txn.Commit()
-	return n
-}
-
-func deleteSnapshotsByTarget(txn *memdb.Txn, target string) int {
 	n, err := txn.DeleteAll(tableSnapshotEntry, "id_prefix", target)
 	if err != nil {
 		panic("failed to delete snapshots by target: " + err.Error())

@@ -84,8 +84,13 @@ func (s *Scraper) scrape(ctx context.Context, results chan<- ProbeResult) {
 	for _, target := range targets {
 		go func(target string) {
 			defer wg.Done()
-			info, err := s.prober.Probe(ctx, target)
-			results <- ProbeResult{info, err}
+			infos, err := s.prober.Probe(ctx, target)
+			results <- ProbeResult{
+				Time:   time.Now(),
+				Target: target,
+				Infos:  infos,
+				Err:    err,
+			}
 		}(target)
 	}
 	wg.Wait()

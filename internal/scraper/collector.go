@@ -14,21 +14,54 @@
 
 package scraper
 
-import "go.blockdaemon.com/solana/cluster-manager/types"
+import (
+	"time"
 
+	"go.blockdaemon.com/solana/cluster-manager/internal/index"
+	"go.blockdaemon.com/solana/cluster-manager/types"
+)
+
+// Collector streams probe results into the database.
 type Collector struct {
-	res chan ProbeResult
+	resChan chan ProbeResult
+	DB      *index.DB
 }
 
-func NewCollector() *Collector {
-	return &Collector{} // TODO not implemented
+func NewCollector(db *index.DB) *Collector {
+	this := &Collector{
+		DB: db,
+	}
+	go this.run()
+	return this
 }
 
+// Probes returns a send-channel that collects and indexes probe results.
 func (c *Collector) Probes() chan<- ProbeResult {
-	return c.res
+	return c.resChan
+}
+
+// Close stops the collector and closes the send-channel.
+func (c *Collector) Close() {
+	close(c.resChan)
+}
+
+func (c *Collector) run() {
+	for res := range c.resChan {
+		c.DB.DeleteSnapshotsByTarget(res.Target)
+		entries := make([]*index.SnapshotEntry, len(res.Infos))
+		for i, info := range res.Infos {
+			entries[i] = &index.SnapshotEntry{
+				SnapshotKey: index.NewSnapshotKey(res.Target, info.Slot),
+				Info:        info,
+				UpdatedAt:   res.Time,
+			}
+		}
+	}
 }
 
 type ProbeResult struct {
-	Infos []*types.SnapshotInfo
-	Err   error
+	Time   time.Time
+	Target string
+	Infos  []*types.SnapshotInfo
+	Err    error
 }
