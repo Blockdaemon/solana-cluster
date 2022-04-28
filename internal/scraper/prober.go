@@ -17,7 +17,6 @@ package scraper
 import (
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"net"
 	"net/http"
 	"net/url"
@@ -47,11 +46,10 @@ func NewProber(group *types.TargetGroup) (*Prober, error) {
 
 	header := make(http.Header)
 	if group.BasicAuth != nil {
-		auth := group.BasicAuth.Username + ":" + group.BasicAuth.Password
-		header.Add("authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
+		group.BasicAuth.Apply(header)
 	}
 	if group.BearerAuth != nil {
-		header.Add("authorization", "Bearer "+group.BearerAuth.Token)
+		group.BearerAuth.Apply(header)
 	}
 
 	client := &http.Client{

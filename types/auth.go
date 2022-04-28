@@ -17,6 +17,7 @@ package types
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/gob"
 	"fmt"
 	"net/http"
@@ -28,16 +29,17 @@ type BasicAuth struct {
 	Password string `json:"password"`
 }
 
-func (b *BasicAuth) Apply(req *http.Request) {
-	req.SetBasicAuth(b.Username, b.Password)
+func (b *BasicAuth) Apply(header http.Header) {
+	auth := b.Username + ":" + b.Password
+	header.Add("authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
 }
 
 type BearerAuth struct {
 	Token string `json:"token"`
 }
 
-func (b *BearerAuth) Apply(req *http.Request) {
-	req.Header.Set("Authorization", "Bearer "+b.Token)
+func (b *BearerAuth) Apply(header http.Header) {
+	header.Set("authorization", "Bearer "+b.Token)
 }
 
 type TLSConfig struct {
