@@ -135,6 +135,9 @@ func ParseSnapshotFileName(name string) *types.SnapshotFile {
 		if err != nil {
 			return nil
 		}
+		if incrementalSlot <= baseSlot {
+			return nil
+		}
 		return &types.SnapshotFile{
 			FileName: name,
 			Slot:     incrementalSlot,

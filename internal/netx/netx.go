@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"net"
 
-	"go.uber.org/multierr"
+	"go.uber.org/atomic"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -33,28 +33,37 @@ func MergeListeners(listeners ...net.Listener) net.Listener {
 
 type mergedListener struct {
 	listeners []net.Listener
+	cancel    context.CancelFunc
+	group     *errgroup.Group
 	ctx       context.Context
 	conns     chan net.Conn
+	err       atomic.Error
 }
 
 func (m *mergedListener) start() {
-	group, ctx := errgroup.WithContext(context.Background())
-	m.ctx = ctx
+	m.ctx, m.cancel = context.WithCancel(context.Background())
+	m.group, m.ctx = errgroup.WithContext(m.ctx)
 	m.conns = make(chan net.Conn)
-	go func() {
-		defer m.Close()
-		<-ctx.Done()
-	}()
 	for _, listener := range m.listeners {
 		listener_ := listener
-		group.Go(func() error {
+		go func() {
+			<-m.ctx.Done()
+			if err := listener_.Close(); err != nil {
+				m.err.Store(err)
+			}
+		}()
+		m.group.Go(func() error {
 			for {
 				accept, err := listener_.Accept()
 				if err != nil {
-					return err
+					if m.ctx.Err() != nil {
+						return nil
+					} else {
+						return err
+					}
 				}
 				select {
-				case <-ctx.Done():
+				case <-m.ctx.Done():
 					return nil
 				case m.conns <- accept:
 				}
@@ -66,20 +75,22 @@ func (m *mergedListener) start() {
 func (m *mergedListener) Accept() (net.Conn, error) {
 	select {
 	case <-m.ctx.Done():
-		return nil, net.ErrClosed
+		err := net.ErrClosed
+		if storedErr := m.err.Load(); storedErr != nil {
+			err = storedErr
+		}
+		return nil, err
 	case conn := <-m.conns:
 		return conn, nil
 	}
 }
 
-func (m *mergedListener) Close() error {
-	errs := make([]error, 0, len(m.listeners))
-	for _, listener := range m.listeners {
-		if err := listener.Close(); err != nil {
-			errs = append(errs, err)
-		}
+func (m *mergedListener) Close() (err error) {
+	m.cancel()
+	if err2 := m.group.Wait(); err2 != nil {
+		return err2
 	}
-	return multierr.Combine(errs...)
+	return err
 }
 
 func (m *mergedListener) Addr() net.Addr {

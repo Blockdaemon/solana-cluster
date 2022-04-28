@@ -34,6 +34,7 @@ func TestListSnapshots(t *testing.T) {
 		"snapshot-100-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
 		"incremental-snapshot-100-200-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
 		"incremental-snapshot-200-300-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
+		"incremental-snapshot-99999-1010101-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
 	}
 	for _, name := range fakeFiles {
 		root.AddFakeFile(t, name)
@@ -200,6 +201,26 @@ func TestParseSnapshotFileName(t *testing.T) {
 				Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 				Ext:      ".tar.zst",
 			},
+		},
+		{
+			name: "IncrementalSnapshotInvalidHash",
+			path: "incremental-snapshot-100-12345678-bad!hash.tar",
+			info: nil,
+		},
+		{
+			name: "IncrementalSnapshotWeird",
+			path: "incremental-snapshot-100.tar",
+			info: nil,
+		},
+		{
+			name: "IncrementalSnapshotWhitespace",
+			path: "incremental-snapshot- e.tar",
+			info: nil,
+		},
+		{
+			name: "IncrementalSnapshotImpossible",
+			path: "incremental-snapshot-300-200-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
+			info: nil,
 		},
 		{
 			name: "NormalSnapshot",
