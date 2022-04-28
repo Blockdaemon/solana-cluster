@@ -22,11 +22,12 @@ jobs:
             type=sha,event=branch,prefix=
             type=raw,value=latest
             type=ref,event=tag
+
       - uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.CONTAINER_REGISTRY_SECRET }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/build-push-action@v2
         with:
@@ -35,3 +36,4 @@ jobs:
           push: true
           build-args: GITHUB_SHA=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
