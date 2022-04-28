@@ -17,12 +17,12 @@ package types
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"os"
 	"strings"
 	"time"
 
 	"go.blockdaemon.com/solana/cluster-manager/internal/discovery"
+	"gopkg.in/yaml.v3"
 )
 
 // Config describes the root-level config file.
@@ -38,8 +38,8 @@ func LoadConfig(filePath string) (*Config, error) {
 		return nil, err
 	}
 	conf := new(Config)
-	jsonErr := json.Unmarshal(configBytes, conf)
-	return conf, jsonErr
+	confErr := yaml.Unmarshal(configBytes, conf)
+	return conf, confErr
 }
 
 // TargetGroup explains how to retrieve snapshots from a group of Solana nodes.
