@@ -23,11 +23,11 @@ import (
 	"strings"
 
 	"github.com/gagliardetto/solana-go"
-	"github.com/samber/lo"
 	"go.blockdaemon.com/solana/cluster-manager/types"
 )
 
 // ListSnapshots shows all available snapshots of a ledger dir in the specified FS.
+// Result is sorted by best-to-worst.
 func ListSnapshots(ledgerDir fs.FS) ([]*types.SnapshotInfo, error) {
 	// List and stat snapshot files.
 	dirEntries, err := fs.ReadDir(ledgerDir, ".")
@@ -49,7 +49,7 @@ func ListSnapshots(ledgerDir fs.FS) ([]*types.SnapshotInfo, error) {
 		files = append(files, info)
 	}
 	sort.Slice(files, func(i, j int) bool {
-		return files[i].Compare(files[j]) < 0
+		return files[i].Compare(files[j]) > 0
 	})
 
 	// Reconstruct snapshot chains for all available snapshots.
@@ -75,7 +75,7 @@ func buildSnapshotInfo(files []*types.SnapshotFile, target *types.SnapshotFile) 
 		}
 		// Find snapshot matching base slot number.
 		index := sort.Search(len(files), func(i int) bool {
-			return files[i].Slot >= base
+			return files[i].Slot <= base
 		})
 		if index >= len(files) || files[index].Slot != base {
 			return nil // incomplete chain
@@ -87,7 +87,7 @@ func buildSnapshotInfo(files []*types.SnapshotFile, target *types.SnapshotFile) 
 	return &types.SnapshotInfo{
 		Slot:      target.Slot,
 		Hash:      target.Hash,
-		Files:     lo.Reverse(chain), // oldest-to-newest
+		Files:     chain,
 		TotalSize: totalSize,
 	}
 }

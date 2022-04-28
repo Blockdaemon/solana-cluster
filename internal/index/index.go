@@ -67,7 +67,7 @@ func (d *DB) GetSnapshotsByTarget(target string) (entries []*SnapshotEntry) {
 	return
 }
 
-// GetBestSnapshots returns highest-to-oldest snapshots.
+// GetBestSnapshots returns newest-to-oldest snapshots.
 // The `max` argument controls the max number of snapshots to return.
 // If max is negative, it returns all snapshots.
 func (d *DB) GetBestSnapshots(max int) (entries []*SnapshotEntry) {

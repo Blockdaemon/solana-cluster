@@ -54,6 +54,10 @@ func (s *SnapshotFile) Compare(o *SnapshotFile) int {
 		return -1
 	} else if s.Slot > o.Slot {
 		return +1
+	} else if s.BaseSlot != 0 && o.BaseSlot == 0 {
+		return -1
+	} else if s.BaseSlot == 0 && o.BaseSlot != 0 {
+		return +1
 	} else if s.BaseSlot < o.BaseSlot {
 		return -1
 	} else if s.BaseSlot > o.BaseSlot {

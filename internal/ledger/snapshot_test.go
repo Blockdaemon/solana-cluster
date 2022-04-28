@@ -15,6 +15,7 @@
 package ledger
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/gagliardetto/solana-go"
@@ -42,57 +43,39 @@ func TestListSnapshots(t *testing.T) {
 	snapshots, err := ListSnapshots(ledgerDir)
 	require.NoError(t, err)
 
+	j, _ := json.MarshalIndent(snapshots, "", "\t")
+	t.Log(string(j))
+
 	assert.Equal(t,
 		[]*types.SnapshotInfo{
 			{
-				Slot:      50,
+				Slot:      300,
 				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
-				TotalSize: 1,
+				TotalSize: 3,
 				Files: []*types.SnapshotFile{
 					{
-						FileName: "snapshot-50-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
-						Slot:     50,
+						FileName: "incremental-snapshot-200-300-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
+						BaseSlot: 200,
+						Slot:     300,
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
-						Ext:      ".tar.bz2",
+						Ext:      ".tar.zst",
 						Size:     1,
 						ModTime:  &root.DummyTime,
 					},
-				},
-			},
-			{
-				Slot:      100,
-				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
-				TotalSize: 1,
-				Files: []*types.SnapshotFile{
+					{
+						FileName: "incremental-snapshot-100-200-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
+						BaseSlot: 100,
+						Slot:     200,
+						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
+						Ext:      ".tar.zst",
+						Size:     1,
+						ModTime:  &root.DummyTime,
+					},
 					{
 						FileName: "snapshot-100-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
 						Slot:     100,
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.bz2",
-						Size:     1,
-						ModTime:  &root.DummyTime,
-					},
-				},
-			},
-			{
-				Slot:      100,
-				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
-				TotalSize: 2,
-				Files: []*types.SnapshotFile{
-					{
-						FileName: "snapshot-50-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
-						Slot:     50,
-						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
-						Ext:      ".tar.bz2",
-						Size:     1,
-						ModTime:  &root.DummyTime,
-					},
-					{
-						FileName: "incremental-snapshot-50-100-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
-						BaseSlot: 50,
-						Slot:     100,
-						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
-						Ext:      ".tar.zst",
 						Size:     1,
 						ModTime:  &root.DummyTime,
 					},
@@ -104,14 +87,6 @@ func TestListSnapshots(t *testing.T) {
 				TotalSize: 2,
 				Files: []*types.SnapshotFile{
 					{
-						FileName: "snapshot-100-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
-						Slot:     100,
-						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
-						Ext:      ".tar.bz2",
-						Size:     1,
-						ModTime:  &root.DummyTime,
-					},
-					{
 						FileName: "incremental-snapshot-100-200-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
 						BaseSlot: 100,
 						Slot:     200,
@@ -120,12 +95,20 @@ func TestListSnapshots(t *testing.T) {
 						Size:     1,
 						ModTime:  &root.DummyTime,
 					},
+					{
+						FileName: "snapshot-100-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
+						Slot:     100,
+						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
+						Ext:      ".tar.bz2",
+						Size:     1,
+						ModTime:  &root.DummyTime,
+					},
 				},
 			},
 			{
-				Slot:      300,
+				Slot:      100,
 				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
-				TotalSize: 3,
+				TotalSize: 1,
 				Files: []*types.SnapshotFile{
 					{
 						FileName: "snapshot-100-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
@@ -135,21 +118,42 @@ func TestListSnapshots(t *testing.T) {
 						Size:     1,
 						ModTime:  &root.DummyTime,
 					},
+				},
+			},
+			{
+				Slot:      100,
+				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
+				TotalSize: 2,
+				Files: []*types.SnapshotFile{
 					{
-						FileName: "incremental-snapshot-100-200-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
-						BaseSlot: 100,
-						Slot:     200,
+						FileName: "incremental-snapshot-50-100-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
+						BaseSlot: 50,
+						Slot:     100,
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 						Ext:      ".tar.zst",
 						Size:     1,
 						ModTime:  &root.DummyTime,
 					},
 					{
-						FileName: "incremental-snapshot-200-300-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.zst",
-						BaseSlot: 200,
-						Slot:     300,
+						FileName: "snapshot-50-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
+						Slot:     50,
 						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
-						Ext:      ".tar.zst",
+						Ext:      ".tar.bz2",
+						Size:     1,
+						ModTime:  &root.DummyTime,
+					},
+				},
+			},
+			{
+				Slot:      50,
+				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
+				TotalSize: 1,
+				Files: []*types.SnapshotFile{
+					{
+						FileName: "snapshot-50-AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr.tar.bz2",
+						Slot:     50,
+						Hash:     solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
+						Ext:      ".tar.bz2",
 						Size:     1,
 						ModTime:  &root.DummyTime,
 					},
