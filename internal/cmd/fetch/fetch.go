@@ -46,7 +46,7 @@ func init() {
 func run() {
 	ctx := context.TODO()
 	client := fetch.NewTrackerClient(trackerURL)
-	snapshots, err := client.GetBestSnapshots(ctx)
+	snapshots, err := client.GetBestSnapshots(ctx, -1)
 	cobra.CheckErr(err)
 
 	buf, _ := json.MarshalIndent(snapshots, "", "\t")
