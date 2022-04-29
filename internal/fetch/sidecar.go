@@ -21,6 +21,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+	"time"
 
 	"go.blockdaemon.com/solana/cluster-manager/types"
 	"gopkg.in/resty.v1"
@@ -66,14 +68,7 @@ func (c *SidecarClient) ListSnapshots(ctx context.Context) (infos []*types.Snaps
 	return
 }
 
-func (c *SidecarClient) DownloadSnapshotFile(ctx context.Context, name string) error {
-	// Open temporary file. (Consider using O_TMPFILE)
-	f, err := os.Create(".tmp." + name)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
+func (c *SidecarClient) DownloadSnapshotFile(ctx context.Context, destDir string, name string) error {
 	// Start new snapshot request.
 	snapURL := c.resty.HostURL + "/" + name
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, snapURL, nil)
@@ -92,6 +87,13 @@ func (c *SidecarClient) DownloadSnapshotFile(ctx context.Context, name string) e
 		return fmt.Errorf("content length unknown")
 	}
 
+	// Open temporary file. (Consider using O_TMPFILE)
+	f, err := os.Create(filepath.Join(destDir, ".tmp."+name))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
 	// Download
 	proxyRd := c.mkProxyReader(name, res.ContentLength, res.Body)
 	_, err = io.Copy(f, proxyRd)
@@ -102,7 +104,19 @@ func (c *SidecarClient) DownloadSnapshotFile(ctx context.Context, name string) e
 	_ = proxyRd.Close()
 
 	// Promote temporary file.
-	return os.Rename(f.Name(), name)
+	destPath := filepath.Join(destDir, name)
+	err = os.Rename(f.Name(), destPath)
+	if err != nil {
+		return err
+	}
+
+	// Change modification time to what server said.
+	modTime, err := time.Parse(http.TimeFormat, res.Header.Get("last-modified"))
+	if err == nil && !modTime.IsZero() {
+		_ = os.Chtimes(destPath, time.Now(), modTime)
+	}
+
+	return nil
 }
 
 func expectOK(res *http.Response) error {

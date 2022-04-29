@@ -86,7 +86,7 @@ func run() {
 	for _, file := range snap.Files {
 		file_ := file
 		group.Go(func() error {
-			err := sidecarClient.DownloadSnapshotFile(ctx, file_.FileName)
+			err := sidecarClient.DownloadSnapshotFile(ctx, ".", file_.FileName)
 			if err != nil {
 				log.Error("Download failed",
 					zap.String("snapshot", file_.FileName))
