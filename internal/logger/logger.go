@@ -55,3 +55,19 @@ type LogLevel struct{ zapcore.Level }
 func (LogLevel) Type() string {
 	return "string"
 }
+
+func GetConsoleLogger() *zap.Logger {
+	logConfig := zap.Config{
+		Level:             zap.AtomicLevel{},
+		DisableCaller:     true,
+		DisableStacktrace: true,
+		Encoding:          "console",
+		EncoderConfig:     zap.NewDevelopmentEncoderConfig(),
+	}
+	logConfig.Level.SetLevel(zap.InfoLevel)
+	log, err := logConfig.Build()
+	if err != nil {
+		panic(err.Error())
+	}
+	return log
+}

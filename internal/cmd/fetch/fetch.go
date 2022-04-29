@@ -18,10 +18,15 @@ package fetch
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"io"
 
 	"github.com/spf13/cobra"
+	"github.com/vbauerster/mpb/v7"
+	"github.com/vbauerster/mpb/v7/decor"
 	"go.blockdaemon.com/solana/cluster-manager/internal/fetch"
+	"go.blockdaemon.com/solana/cluster-manager/internal/logger"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 var Cmd = cobra.Command{
@@ -44,11 +49,50 @@ func init() {
 }
 
 func run() {
+	log := logger.GetConsoleLogger()
 	ctx := context.TODO()
-	client := fetch.NewTrackerClient(trackerURL)
-	snapshots, err := client.GetBestSnapshots(ctx, -1)
-	cobra.CheckErr(err)
 
-	buf, _ := json.MarshalIndent(snapshots, "", "\t")
-	fmt.Printf("%s\n", buf)
+	// Ask tracker for best snapshots.
+	trackerClient := fetch.NewTrackerClient(trackerURL)
+	snapshots, err := trackerClient.GetBestSnapshots(ctx, -1)
+	if err != nil {
+		log.Fatal("Failed to request snapshot info", zap.Error(err))
+	}
+
+	if len(snapshots) == 0 {
+		log.Fatal("No snapshots available")
+	}
+
+	// Print snapshot to user.
+	snap := &snapshots[0]
+	buf, _ := json.MarshalIndent(snap, "", "\t")
+	log.Info("Found a snapshot", zap.ByteString("snap", buf))
+
+	// Setup progress bars for download.
+	bars := mpb.New()
+	sidecarClient := fetch.NewSidecarClient(snap.Target)
+	sidecarClient.SetProxyReaderFunc(func(name string, size int64, rd io.Reader) io.ReadCloser {
+		bar := bars.New(
+			size,
+			mpb.BarStyle(),
+			mpb.PrependDecorators(decor.Name(name)),
+			mpb.AppendDecorators(decor.Percentage()),
+		)
+		return bar.ProxyReader(rd)
+	})
+
+	// Download.
+	group, ctx := errgroup.WithContext(ctx)
+	for _, file := range snap.Files {
+		file_ := file
+		group.Go(func() error {
+			err := sidecarClient.DownloadSnapshotFile(ctx, file_.FileName)
+			if err != nil {
+				log.Error("Download failed",
+					zap.String("snapshot", file_.FileName))
+			}
+			return err
+		})
+	}
+	_ = group.Wait()
 }

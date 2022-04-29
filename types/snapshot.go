@@ -48,6 +48,11 @@ type SnapshotFile struct {
 	Size    uint64     `json:"size,omitempty"`
 }
 
+// IsFull returns whether the snapshot is a full snapshot.
+func (s *SnapshotFile) IsFull() bool {
+	return s.BaseSlot == 0
+}
+
 // Compare implements lexicographic ordering by (slot, base_slot, hash).
 func (s *SnapshotFile) Compare(o *SnapshotFile) int {
 	if s.Slot < o.Slot {

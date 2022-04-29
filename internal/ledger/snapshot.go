@@ -26,10 +26,8 @@ import (
 	"go.blockdaemon.com/solana/cluster-manager/types"
 )
 
-// ListSnapshots shows all available snapshots of a ledger dir in the specified FS.
-// Result is sorted by best-to-worst.
-func ListSnapshots(ledgerDir fs.FS) ([]*types.SnapshotInfo, error) {
-	// List and stat snapshot files.
+// ListSnapshotFiles returns all snapshot files in a ledger dir.
+func ListSnapshotFiles(ledgerDir fs.FS) ([]*types.SnapshotFile, error) {
 	dirEntries, err := fs.ReadDir(ledgerDir, ".")
 	if err != nil {
 		return nil, fmt.Errorf("failed to list ledger dir: %w", err)
@@ -51,7 +49,17 @@ func ListSnapshots(ledgerDir fs.FS) ([]*types.SnapshotInfo, error) {
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Compare(files[j]) > 0
 	})
+	return files, nil
+}
 
+// ListSnapshots shows all available snapshots of a ledger dir in the specified FS.
+// Result is sorted by best-to-worst.
+func ListSnapshots(ledgerDir fs.FS) ([]*types.SnapshotInfo, error) {
+	// List and stat snapshot files.
+	files, err := ListSnapshotFiles(ledgerDir)
+	if err != nil {
+		return nil, err
+	}
 	// Reconstruct snapshot chains for all available snapshots.
 	infos := make([]*types.SnapshotInfo, 0, len(files))
 	for _, file := range files {
@@ -102,7 +110,7 @@ func ParseSnapshotFileName(name string) *types.SnapshotFile {
 		stem = strings.TrimSuffix(stem, extPart)
 		ext = extPart + ext
 	}
-	if strings.ContainsAny(stem, " \t\n") {
+	if strings.ContainsAny(stem, "\\/ \t\n") {
 		return nil
 	}
 	// Parse file name fields.
