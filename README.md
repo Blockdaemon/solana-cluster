@@ -32,20 +32,27 @@ Nodes will download snapshots directly from the sidecars of other nodes.
 
 ### TPU & TVU
 
-Not yet ready for release. 🚜
+Not yet public. 🚜 Subscribe to releases! ✨
 
 ## Motivation
+
+Blockdaemon manages one of the largest Solana validator and RPC infrastructure deployments to date, backed by a custom peer-to-peer backbone.
+This repository shares our tools for performance and sustainability improvements.
 
 When Solana validators first start, they have to retrieve and validate hundreds of gigabytes of state data from a remote node.
 During normal operation, validators stream at least 500 Mbps of traffic in either direction.
 
 For Solana infra operators that manage more than node (not to mention hundreds), this cost currently scales linearly as well.
-It shouldn't have to though.
+Unmodified Solana deployments treat their cluster peers the same as any other.
+This can end in a large number of streams between globally dispersed validators.
 
-Co-located Solana validators that are controlled by the same entity should also behave as one.
-Bandwidth cost is especially asymmetric:
-10 Gbps connectivity is also cheap and abundant locally within data centers
-but persistent 1 Gbps streams between globally dispersed validator gets expensive quickly.
+This is obviously inefficient. 10 Gbps connectivity is cheap and abundant locally within data centers.
+In contrast, major public clouds (who shall not be named) charge egregious premiums on Internet traffic.
 
-Blockdaemon manages one of the largest validator and RPC infrastructure deployments to date, backed by a custom peer-to-peer backbone.
-This repository shares our tools for performance and sustainability (network & SSD wear) improvements.
+The solution: Co-located Solana validators that are controlled by the same entity should also behave as one entity.
+
+Leveraging internal connectivity to distribute blockchain data can
+reduce public network _leeching_ and increase total cluster bandwidth.
+
+Authenticated internal connectivity allows delegation of expensive calculations and re-use of results thereof.
+Concretely, the amount write-heavy snapshot creation & verification procedures per node can decrease as the cluster scales out.
