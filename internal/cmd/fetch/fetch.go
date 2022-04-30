@@ -19,7 +19,9 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"net/http"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -30,6 +32,7 @@ import (
 	"go.blockdaemon.com/solana/cluster-manager/internal/logger"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"gopkg.in/resty.v1"
 )
 
 var Cmd = cobra.Command{
@@ -42,23 +45,38 @@ var Cmd = cobra.Command{
 }
 
 var (
-	ledgerDir  string
-	trackerURL string
-	minSnapAge uint64
-	maxSnapAge uint64
+	ledgerDir       string
+	trackerURL      string
+	minSnapAge      uint64
+	maxSnapAge      uint64
+	requestTimeout  time.Duration
+	downloadTimeout time.Duration
 )
 
 func init() {
 	flags := Cmd.Flags()
 	flags.StringVar(&ledgerDir, "ledger", "", "Path to ledger dir")
-	flags.StringVar(&trackerURL, "tracker", "", "Tracker URL")
+	flags.StringVar(&trackerURL, "tracker", "", "Download as instructed by given tracker URL")
 	flags.Uint64Var(&minSnapAge, "min-slots", 500, "Download only snapshots <n> slots newer than local")
 	flags.Uint64Var(&maxSnapAge, "max-slots", 10000, "Refuse to download <n> slots older than the newest")
+	flags.DurationVar(&requestTimeout, "request-timeout", 3*time.Second, "Max time to wait for headers (excluding download)")
+	flags.DurationVar(&downloadTimeout, "download-timeout", 10*time.Minute, "Max time to try downloading in total")
 }
 
 func run() {
 	log := logger.GetConsoleLogger()
-	ctx := context.TODO()
+
+	// Regardless which API we talk to, we want to cap time from request to response header.
+	// This defends against black holes and really slow servers.
+	// Download time (reading response body) is not affected.
+	http.DefaultTransport.(*http.Transport).ResponseHeaderTimeout = requestTimeout
+
+	// Run until interrupted or time out occurs.
+	ctx := context.Background()
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+	ctx, cancel2 := context.WithTimeout(context.Background(), downloadTimeout)
+	defer cancel2()
 
 	// Check what snapshots we have locally.
 	localSnaps, err := ledger.ListSnapshots(os.DirFS(ledgerDir))
@@ -67,12 +85,17 @@ func run() {
 	}
 
 	// Ask tracker for best snapshots.
-	trackerClient := fetch.NewTrackerClient(trackerURL)
+	trackerClient := fetch.NewTrackerClientWithResty(
+		resty.New().
+			SetHostURL(trackerURL).
+			SetTimeout(requestTimeout),
+	)
 	remoteSnaps, err := trackerClient.GetBestSnapshots(ctx, -1)
 	if err != nil {
 		log.Fatal("Failed to request snapshot info", zap.Error(err))
 	}
 
+	// Decide what we want to do.
 	_, advice := fetch.ShouldFetchSnapshot(localSnaps, remoteSnaps, minSnapAge, maxSnapAge)
 	switch advice {
 	case fetch.AdviceNothingFound:
