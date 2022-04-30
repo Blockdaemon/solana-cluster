@@ -31,7 +31,8 @@ import (
 
 var Cmd = cobra.Command{
 	Use:   "fetch",
-	Short: "Fetch snapshot from another node",
+	Short: "Snapshot downloader",
+	Long:  "Fetches a snapshot from another node using the tracker API.",
 	Run: func(_ *cobra.Command, _ []string) {
 		run()
 	},

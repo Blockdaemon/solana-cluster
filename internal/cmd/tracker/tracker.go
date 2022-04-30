@@ -42,7 +42,8 @@ var Cmd = cobra.Command{
 	Use:   "tracker",
 	Short: "Snapshot tracker server",
 	Long: "Connects to sidecars on nodes and scrapes the available snapshot versions.\n" +
-		"Provides an API allowing fetch jobs to find the latest snapshots.",
+		"Provides an API allowing fetch jobs to find the latest snapshots.\n" +
+		"Do not expose this API publicly.",
 	Run: func(_ *cobra.Command, _ []string) {
 		run()
 	},

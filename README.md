@@ -2,6 +2,72 @@
 
 Tooling to manage private clusters of Solana nodes.
 
+## Deployment
+
+### Building from source
+
+Requirements: Go 1.18 & build essentials.
+
+```shell
+go mod download
+go build -o ./solana-cluster .
+```
+
+### Docker Image
+
+Find amd64 and arm64 Docker images for all releases on [GitHub Container Registry](https://github.com/Blockdaemon/solana-cluster/pkgs/container/solana-cluster-manager).
+
+```shell
+docker pull ghcr.io/blockdaemon/solana-cluster-manager
+docker run \
+  --network-mode=host \
+  -v /solana/ledger:/ledger:ro \
+  ghcr.io/blockdaemon/solana-cluster-manager \
+  sidecar --ledger /ledger
+```
+
+## Usage
+
+```
+$ solana-cluster sidecar --help
+
+Runs on a Solana node and serves available snapshot archives.
+Do not expose this API publicly.
+
+Usage:
+  solana-snapshots sidecar [flags]
+
+Flags:
+      --interface string    Only accept connections from this interface
+      --ledger string       Path to ledger dir
+      --port uint16         Listen port (default 13080)
+
+$ solana-cluster tracker --help
+
+Connects to sidecars on nodes and scrapes the available snapshot versions.
+Provides an API allowing fetch jobs to find the latest snapshots.
+Do not expose this API publicly.
+
+Usage:
+  solana-snapshots tracker [flags]
+
+Flags:
+      --config string            Path to config file
+      --internal-listen string   Internal listen URL (default ":8457")
+      --listen string            Listen URL (default ":8458")
+
+$ solana-cluster fetch --help
+
+Fetches a snapshot from another node using the tracker API.
+
+Usage:
+  solana-snapshots fetch [flags]
+
+Flags:
+      --ledger string    Path to ledger dir
+      --tracker string   Tracker URL
+```
+
 ## Architecture
 
 ### Snapshot management

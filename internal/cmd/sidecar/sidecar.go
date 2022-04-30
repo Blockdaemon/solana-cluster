@@ -30,7 +30,8 @@ import (
 var Cmd = cobra.Command{
 	Use:   "sidecar",
 	Short: "Snapshot node sidecar",
-	Long:  "Runs on a Solana node and serves available snapshot archives.",
+	Long: "Runs on a Solana node and serves available snapshot archives.\n" +
+		"Do not expose this API publicly.",
 	Run: func(_ *cobra.Command, _ []string) {
 		run()
 	},
