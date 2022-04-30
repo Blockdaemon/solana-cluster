@@ -75,7 +75,7 @@ func run() {
 	ctx := context.Background()
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
-	ctx, cancel2 := context.WithTimeout(context.Background(), downloadTimeout)
+	ctx, cancel2 := context.WithTimeout(ctx, downloadTimeout)
 	defer cancel2()
 
 	// Check what snapshots we have locally.
