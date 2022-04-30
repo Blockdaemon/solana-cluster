@@ -79,7 +79,7 @@ Flags:
 
 ### Snapshot management
 
-**[Twitter 🧵](https://twitter.com/terorie_dev)**
+**[Twitter 🧵](https://twitter.com/terorie_dev/status/1520289936611725312)**
 
 Snapshot management tooling enables efficient peer-to-peer transfers of accounts database archives.
 
