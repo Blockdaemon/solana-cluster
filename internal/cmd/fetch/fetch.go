@@ -19,11 +19,14 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/vbauerster/mpb/v7"
 	"github.com/vbauerster/mpb/v7/decor"
 	"go.blockdaemon.com/solana/cluster-manager/internal/fetch"
+	"go.blockdaemon.com/solana/cluster-manager/internal/ledger"
 	"go.blockdaemon.com/solana/cluster-manager/internal/logger"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -41,33 +44,51 @@ var Cmd = cobra.Command{
 var (
 	ledgerDir  string
 	trackerURL string
+	minSnapAge uint64
+	maxSnapAge uint64
 )
 
 func init() {
 	flags := Cmd.Flags()
 	flags.StringVar(&ledgerDir, "ledger", "", "Path to ledger dir")
 	flags.StringVar(&trackerURL, "tracker", "", "Tracker URL")
+	flags.Uint64Var(&minSnapAge, "min-slots", 500, "Download only snapshots <n> slots newer than local")
+	flags.Uint64Var(&maxSnapAge, "max-slots", 10000, "Refuse to download <n> slots older than the newest")
 }
 
 func run() {
 	log := logger.GetConsoleLogger()
 	ctx := context.TODO()
 
+	// Check what snapshots we have locally.
+	localSnaps, err := ledger.ListSnapshots(os.DirFS(ledgerDir))
+	if err != nil {
+		log.Fatal("Failed to check existing snapshots", zap.Error(err))
+	}
+
 	// Ask tracker for best snapshots.
 	trackerClient := fetch.NewTrackerClient(trackerURL)
-	snapshots, err := trackerClient.GetBestSnapshots(ctx, -1)
+	remoteSnaps, err := trackerClient.GetBestSnapshots(ctx, -1)
 	if err != nil {
 		log.Fatal("Failed to request snapshot info", zap.Error(err))
 	}
 
-	if len(snapshots) == 0 {
-		log.Fatal("No snapshots available")
+	_, advice := fetch.ShouldFetchSnapshot(localSnaps, remoteSnaps, minSnapAge, maxSnapAge)
+	switch advice {
+	case fetch.AdviceNothingFound:
+		log.Error("No snapshots available remotely")
+		return
+	case fetch.AdviceUpToDate:
+		log.Info("Existing snapshot is recent enough, no download needed",
+			zap.Uint64("existing_slot", localSnaps[0].Slot))
+		return
+	case fetch.AdviceFetch:
 	}
 
 	// Print snapshot to user.
-	snap := &snapshots[0]
+	snap := &remoteSnaps[0]
 	buf, _ := json.MarshalIndent(snap, "", "\t")
-	log.Info("Found a snapshot", zap.ByteString("snap", buf))
+	log.Info("Downloading a snapshot", zap.ByteString("snap", buf))
 
 	// Setup progress bars for download.
 	bars := mpb.New()
@@ -77,12 +98,16 @@ func run() {
 			size,
 			mpb.BarStyle(),
 			mpb.PrependDecorators(decor.Name(name)),
-			mpb.AppendDecorators(decor.Percentage()),
+			mpb.AppendDecorators(
+				decor.AverageSpeed(decor.UnitKB, "% .1f"),
+				decor.Percentage(),
+			),
 		)
 		return bar.ProxyReader(rd)
 	})
 
 	// Download.
+	beforeDownload := time.Now()
 	group, ctx := errgroup.WithContext(ctx)
 	for _, file := range snap.Files {
 		file_ := file
@@ -95,5 +120,12 @@ func run() {
 			return err
 		})
 	}
-	_ = group.Wait()
+	downloadErr := group.Wait()
+	downloadDuration := time.Since(beforeDownload)
+
+	if downloadErr == nil {
+		log.Info("Download completed", zap.Duration("download_time", downloadDuration))
+	} else {
+		log.Info("Aborting download", zap.Duration("download_time", downloadDuration))
+	}
 }
