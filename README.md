@@ -2,6 +2,13 @@
 
 Tooling to manage private clusters of Solana nodes.
 
+<a href="https://pkg.go.dev/go.blockdaemon.com/solana/cluster-manager"><img src="https://pkg.go.dev/badge/go.blockdaemon.com/solana/cluster-manager.svg" alt="Go Reference"></a>
+<img src="https://github.com/Blockdaemon/solana-cluster/actions/workflows/build.yml/badge.svg?branch=main">
+<img src="https://github.com/Blockdaemon/solana-cluster/actions/workflows/test.yml/badge.svg?branch=main">
+
+[Issue Tracker](https://github.com/orgs/Blockdaemon/projects/1/views/1)
+
+
 ## Deployment
 
 ### Building from source
