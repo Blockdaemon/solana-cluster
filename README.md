@@ -110,7 +110,7 @@ Not yet public. 🚜 Subscribe to releases! ✨
 ## Motivation
 
 Blockdaemon manages one of the largest Solana validator and RPC infrastructure deployments to date, backed by a custom peer-to-peer backbone.
-This repository shares our tools for performance and sustainability improvements.
+This repository shares our performance and sustainability optimizations.
 
 When Solana validators first start, they have to retrieve and validate hundreds of gigabytes of state data from a remote node.
 During normal operation, validators stream at least 500 Mbps of traffic in either direction.
