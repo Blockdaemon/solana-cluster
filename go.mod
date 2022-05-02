@@ -6,7 +6,7 @@ require (
 	github.com/gagliardetto/solana-go v1.4.0
 	github.com/gin-contrib/zap v0.0.2
 	github.com/gin-gonic/gin v1.7.7
-	github.com/hashicorp/go-memdb v1.3.2
+	github.com/hashicorp/go-memdb v1.3.3
 	github.com/prometheus/client_golang v1.12.1
 	github.com/spf13/afero v1.8.2
 	github.com/spf13/cobra v1.4.0
