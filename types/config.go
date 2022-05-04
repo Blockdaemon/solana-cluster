@@ -27,32 +27,36 @@ import (
 
 // Config describes the root-level config file.
 type Config struct {
-	ScrapeInterval time.Duration  `json:"scrape_interval"`
-	TargetGroups   []*TargetGroup `json:"target_groups"`
+	ScrapeInterval time.Duration  `json:"scrape_interval" yaml:"scrape_interval"`
+	TargetGroups   []*TargetGroup `json:"target_groups" yaml:"target_groups"`
 }
 
 // LoadConfig reads the config object from the file system.
 func LoadConfig(filePath string) (*Config, error) {
-	configBytes, err := os.ReadFile(filePath)
+	f, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
+
 	conf := new(Config)
-	confErr := yaml.Unmarshal(configBytes, conf)
+	decoder := yaml.NewDecoder(f)
+	decoder.KnownFields(true)
+	confErr := decoder.Decode(conf)
 	return conf, confErr
 }
 
 // TargetGroup explains how to retrieve snapshots from a group of Solana nodes.
 type TargetGroup struct {
-	Group      string      `json:"group"`
-	Scheme     string      `json:"scheme"`
-	APIPath    string      `json:"api_path"`
-	BasicAuth  *BasicAuth  `json:"basic_auth"`
-	BearerAuth *BearerAuth `json:"bearer_auth"`
-	TLSConfig  *TLSConfig  `json:"tls_config"`
+	Group      string      `json:"group" yaml:"group"`
+	Scheme     string      `json:"scheme" yaml:"scheme"`
+	APIPath    string      `json:"api_path" yaml:"api_path"`
+	BasicAuth  *BasicAuth  `json:"basic_auth" yaml:"basic_auth"`
+	BearerAuth *BearerAuth `json:"bearer_auth" yaml:"bearer_auth"`
+	TLSConfig  *TLSConfig  `json:"tls_config" yaml:"tls_config"`
 
-	StaticTargets *StaticTargets `json:"static_targets"`
-	FileTargets   *FileTargets   `json:"file_targets"`
+	StaticTargets *StaticTargets `json:"static_targets" yaml:"static_targets"`
+	FileTargets   *FileTargets   `json:"file_targets" yaml:"file_targets"`
 }
 
 func (t *TargetGroup) Discoverer() discovery.Discoverer {
@@ -67,7 +71,7 @@ func (t *TargetGroup) Discoverer() discovery.Discoverer {
 
 // StaticTargets is a hardcoded list of Solana nodes.
 type StaticTargets struct {
-	Targets []string `json:"targets"`
+	Targets []string `json:"targets" yaml:"targets"`
 }
 
 func (s *StaticTargets) DiscoverTargets(_ context.Context) ([]string, error) {
@@ -76,7 +80,7 @@ func (s *StaticTargets) DiscoverTargets(_ context.Context) ([]string, error) {
 
 // FileTargets reads targets from a JSON file.
 type FileTargets struct {
-	Path string `json:"path"`
+	Path string `json:"path" yaml:"path"`
 }
 
 func (d *FileTargets) DiscoverTargets(_ context.Context) ([]string, error) {

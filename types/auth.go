@@ -25,8 +25,8 @@ import (
 )
 
 type BasicAuth struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" yaml:"username"`
+	Password string `json:"password" yaml:"password"`
 }
 
 func (b *BasicAuth) Apply(header http.Header) {
@@ -35,7 +35,7 @@ func (b *BasicAuth) Apply(header http.Header) {
 }
 
 type BearerAuth struct {
-	Token string `json:"token"`
+	Token string `json:"token" yaml:"token"`
 }
 
 func (b *BearerAuth) Apply(header http.Header) {
@@ -43,10 +43,10 @@ func (b *BearerAuth) Apply(header http.Header) {
 }
 
 type TLSConfig struct {
-	CAFile             string `json:"ca_file"`
-	CertFile           string `json:"cert_file"`
-	KeyFile            string `json:"key_file"`
-	InsecureSkipVerify bool   `json:"insecure_skip_verify"`
+	CAFile             string `json:"ca_file" yaml:"ca_file"`
+	CertFile           string `json:"cert_file" yaml:"cert_file"`
+	KeyFile            string `json:"key_file" yaml:"key_file"`
+	InsecureSkipVerify bool   `json:"insecure_skip_verify" yaml:"insecure_skip_verify"`
 }
 
 func init() {
