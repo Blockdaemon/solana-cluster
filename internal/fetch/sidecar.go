@@ -68,23 +68,36 @@ func (c *SidecarClient) ListSnapshots(ctx context.Context) (infos []*types.Snaps
 	return
 }
 
-func (c *SidecarClient) DownloadSnapshotFile(ctx context.Context, destDir string, name string) error {
-	// Start new snapshot request.
+// StreamSnapshot starts a download of a snapshot file.
+// The returned response is guaranteed to have a valid ContentLength.
+// The caller has the responsibility to close the response body even if the error is not nil.
+func (c *SidecarClient) StreamSnapshot(ctx context.Context, name string) (res *http.Response, err error) {
 	snapURL := c.resty.HostURL + "/" + name
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, snapURL, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	res, err := c.resty.GetClient().Do(req)
+	res, err = c.resty.GetClient().Do(req)
 	if err != nil {
-		return err
+		return
 	}
-	defer res.Body.Close()
-	if err := expectOK(res); err != nil {
-		return err
+	if err = expectOK(res); err != nil {
+		return
 	}
 	if res.ContentLength < 0 {
-		return fmt.Errorf("content length unknown")
+		err = fmt.Errorf("content length unknown")
+	}
+	return
+}
+
+// DownloadSnapshotFile downloads a snapshot to a file in the local file system.
+func (c *SidecarClient) DownloadSnapshotFile(ctx context.Context, destDir string, name string) error {
+	res, err := c.StreamSnapshot(ctx, name)
+	if res != nil {
+		defer res.Body.Close()
+	}
+	if err != nil {
+		return err
 	}
 
 	// Open temporary file. (Consider using O_TMPFILE)
