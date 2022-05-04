@@ -67,6 +67,22 @@ func (d *DB) GetSnapshotsByTarget(target string) (entries []*SnapshotEntry) {
 	return
 }
 
+// GetAllSnapshots returns a list of all snapshots.
+func (d *DB) GetAllSnapshots() (entries []*SnapshotEntry) {
+	iter, err := d.DB.Txn(false).LowerBound(tableSnapshotEntry, "id", "", uint64(0))
+	if err != nil {
+		panic("getting best snapshots failed: " + err.Error())
+	}
+	for {
+		el := iter.Next()
+		if el == nil {
+			break
+		}
+		entries = append(entries, el.(*SnapshotEntry))
+	}
+	return
+}
+
 // GetBestSnapshots returns newest-to-oldest snapshots.
 // The `max` argument controls the max number of snapshots to return.
 // If max is negative, it returns all snapshots.

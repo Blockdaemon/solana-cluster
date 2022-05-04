@@ -24,8 +24,8 @@ import (
 // SnapshotSource describes a snapshot, and where to get it from.
 type SnapshotSource struct {
 	SnapshotInfo
-	Target    string
-	UpdatedAt time.Time
+	Target    string    `json:"target"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // SnapshotInfo describes a snapshot.

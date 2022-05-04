@@ -35,7 +35,12 @@ func NewHandler(db *index.DB) *Handler {
 
 // RegisterHandlers registers this API with Gin web framework.
 func (h *Handler) RegisterHandlers(group gin.IRoutes) {
+	group.GET("/snapshots", h.GetSnapshots)
 	group.GET("/best_snapshots", h.GetBestSnapshots)
+}
+
+func (h *Handler) GetSnapshots(c *gin.Context) {
+	c.JSON(http.StatusOK, h.DB.GetAllSnapshots())
 }
 
 // GetBestSnapshots returns the currently available best snapshots.

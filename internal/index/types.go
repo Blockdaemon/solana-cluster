@@ -22,13 +22,13 @@ import (
 
 type SnapshotEntry struct {
 	SnapshotKey
-	Info      *types.SnapshotInfo
-	UpdatedAt time.Time
+	Info      *types.SnapshotInfo `json:"info"`
+	UpdatedAt time.Time           `json:"updated_at"`
 }
 
 type SnapshotKey struct {
-	Target      string
-	InverseSlot uint64 // newest-to-oldest sort
+	Target      string `json:"target"`
+	InverseSlot uint64 `json:"inverse_slot"` // newest-to-oldest sort
 }
 
 func NewSnapshotKey(target string, slot uint64) SnapshotKey {
