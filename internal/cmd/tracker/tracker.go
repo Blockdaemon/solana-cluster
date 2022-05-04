@@ -95,6 +95,9 @@ func run() {
 	// Create result collector.
 	db := index.NewDB()
 	collector := scraper.NewCollector(db)
+	collector.Log = log.Named("collector")
+	collector.Start()
+	defer collector.Close()
 
 	gin.SetMode(gin.ReleaseMode)
 	server := gin.New()

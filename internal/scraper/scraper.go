@@ -55,6 +55,9 @@ func (s *Scraper) Close() {
 }
 
 func (s *Scraper) run(results chan<- ProbeResult, interval time.Duration) {
+	s.Log.Info("Starting scraper")
+	defer s.Log.Info("Stopping scraper")
+
 	defer s.wg.Done()
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
@@ -73,11 +76,19 @@ func (s *Scraper) run(results chan<- ProbeResult, interval time.Duration) {
 }
 
 func (s *Scraper) scrape(ctx context.Context, results chan<- ProbeResult) {
+	discoveryStart := time.Now()
 	targets, err := s.discoverer.DiscoverTargets(ctx)
 	if err != nil {
 		s.Log.Error("Service discovery failed", zap.Error(err))
 		return
 	}
+
+	scrapeStart := time.Now()
+	s.Log.Debug("Scrape starting",
+		zap.Duration("discovery_duration", time.Since(discoveryStart)),
+		zap.Int("num_targets", len(targets)))
+	defer s.Log.Debug("Scrape finished",
+		zap.Duration("scrape_duration", time.Since(scrapeStart)))
 
 	var wg sync.WaitGroup
 	wg.Add(len(targets))
