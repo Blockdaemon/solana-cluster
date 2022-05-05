@@ -58,7 +58,7 @@ func (LogLevel) Type() string {
 
 func GetConsoleLogger() *zap.Logger {
 	logConfig := zap.Config{
-		Level:             zap.AtomicLevel{},
+		Level:             zap.NewAtomicLevel(),
 		DisableCaller:     true,
 		DisableStacktrace: true,
 		Encoding:          "console",

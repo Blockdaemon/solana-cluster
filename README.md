@@ -48,7 +48,9 @@ Flags:
       --interface string    Only accept connections from this interface
       --ledger string       Path to ledger dir
       --port uint16         Listen port (default 13080)
+```
 
+```
 $ solana-cluster tracker --help
 
 Connects to sidecars on nodes and scrapes the available snapshot versions.
@@ -62,7 +64,9 @@ Flags:
       --config string            Path to config file
       --internal-listen string   Internal listen URL (default ":8457")
       --listen string            Listen URL (default ":8458")
+```
 
+```
 $ solana-cluster fetch --help
 
 Fetches a snapshot from another node using the tracker API.
@@ -71,8 +75,31 @@ Usage:
   solana-snapshots fetch [flags]
 
 Flags:
-      --ledger string    Path to ledger dir
-      --tracker string   Tracker URL
+      --download-timeout duration   Max time to try downloading in total (default 10m0s)
+      --ledger string               Path to ledger dir
+      --max-slots uint              Refuse to download <n> slots older than the newest (default 10000)
+      --min-slots uint              Download only snapshots <n> slots newer than local (default 500)
+      --request-timeout duration    Max time to wait for headers (excluding download) (default 3s)
+      --tracker string              Download as instructed by given tracker URL
+```
+
+```
+$ solana-cluster mirror --help
+
+Periodically mirrors snapshots from nodes to an S3-compatible data store.
+Specify credentials via env $AWS_ACCESS_KEY_ID and $AWS_SECRET_ACCESS_KEY
+
+Usage:
+  solana-snapshots mirror [flags]
+
+Flags:
+      --refresh duration   Refresh interval to discover new snapshots (default 30s)
+      --s3-bucket string   Bucket name
+      --s3-prefix string   Prefix for S3 object names (optional)
+      --s3-region string   S3 region (optional)
+      --s3-secure          Use secure S3 transport (default true)
+      --s3-url string      URL to S3 API
+      --tracker string     URL to tracker API
 ```
 
 ## Architecture

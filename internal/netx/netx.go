@@ -57,7 +57,7 @@ func (m *mergedListener) start() {
 				accept, err := listener_.Accept()
 				if err != nil {
 					if m.ctx.Err() != nil {
-						return nil
+						return nil // context cancel requested, exit gracefully
 					} else {
 						return err
 					}
@@ -85,12 +85,9 @@ func (m *mergedListener) Accept() (net.Conn, error) {
 	}
 }
 
-func (m *mergedListener) Close() (err error) {
+func (m *mergedListener) Close() error {
 	m.cancel()
-	if err2 := m.group.Wait(); err2 != nil {
-		return err2
-	}
-	return err
+	return m.group.Wait()
 }
 
 func (m *mergedListener) Addr() net.Addr {
@@ -105,6 +102,9 @@ func (m *mergedListener) Addr() net.Addr {
 }
 
 // ListenTCPInterface is like net.ListenTCP but can bind to one interface only.
+//
+// Internally, it listens to all host IP addresses of the given interface.
+// If the interface name is empty, it listens on all addresses.
 func ListenTCPInterface(network string, ifaceName string, port uint16) (net.Listener, []net.TCPAddr, error) {
 	var listenAddrs []net.TCPAddr
 	if ifaceName != "" {
