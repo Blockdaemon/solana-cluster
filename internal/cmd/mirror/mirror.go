@@ -60,7 +60,7 @@ func init() {
 }
 
 func run(cmd *cobra.Command) {
-	log := logger.GetConsoleLogger()
+	log := logger.GetLogger()
 	_ = log
 
 	if trackerURL == "" || s3URL == "" || s3Bucket == "" {
