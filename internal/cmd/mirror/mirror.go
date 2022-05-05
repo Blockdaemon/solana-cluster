@@ -31,7 +31,8 @@ import (
 var Cmd = cobra.Command{
 	Use:   "mirror",
 	Short: "Daemon to periodically upload snapshots to S3",
-	Long:  "Uploads snapshots to an S3 bucket",
+	Long: "Periodically mirrors snapshots from nodes to an S3-compatible data store.\n" +
+		"Specify credentials via env $AWS_ACCESS_KEY_ID and $AWS_SECRET_ACCESS_KEY",
 	Run: func(cmd *cobra.Command, _ []string) {
 		run(cmd)
 	},
@@ -53,9 +54,9 @@ func init() {
 	flags.StringVar(&trackerURL, "tracker", "", "URL to tracker API")
 	flags.StringVar(&s3URL, "s3-url", "", "URL to S3 API")
 	flags.BoolVar(&s3Secure, "s3-secure", true, "Use secure S3 transport")
-	flags.StringVar(&s3Region, "region", "", "S3 region (optional)")
-	flags.StringVar(&s3Bucket, "bucket", "", "Bucket name")
-	flags.StringVar(&objectPrefix, "prefix", "", "Object prefix (optional)")
+	flags.StringVar(&s3Region, "s3-region", "", "S3 region (optional)")
+	flags.StringVar(&s3Bucket, "s3-bucket", "", "Bucket name")
+	flags.StringVar(&objectPrefix, "s3-prefix", "", "Prefix for S3 object names (optional)")
 }
 
 func run(cmd *cobra.Command) {
