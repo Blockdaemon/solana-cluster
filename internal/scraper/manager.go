@@ -15,9 +15,9 @@
 package scraper
 
 import (
-	"fmt"
 	"sync"
 
+	"go.blockdaemon.com/solana/cluster-manager/internal/discovery"
 	"go.blockdaemon.com/solana/cluster-manager/types"
 	"go.uber.org/zap"
 )
@@ -66,9 +66,9 @@ func (m *Manager) Update(conf *types.Config) {
 }
 
 func (m *Manager) loadGroup(group *types.TargetGroup, log *zap.Logger) error {
-	disc := group.Discoverer()
-	if disc == nil {
-		return fmt.Errorf("no target discovery")
+	disc, err := discovery.NewFromConfig(group)
+	if err != nil {
+		return err
 	}
 
 	prober, err := NewProber(group)

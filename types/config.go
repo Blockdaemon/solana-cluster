@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	"go.blockdaemon.com/solana/cluster-manager/internal/discovery"
 	"gopkg.in/yaml.v3"
 )
 
@@ -55,18 +54,9 @@ type TargetGroup struct {
 	BearerAuth *BearerAuth `json:"bearer_auth" yaml:"bearer_auth"`
 	TLSConfig  *TLSConfig  `json:"tls_config" yaml:"tls_config"`
 
-	StaticTargets *StaticTargets `json:"static_targets" yaml:"static_targets"`
-	FileTargets   *FileTargets   `json:"file_targets" yaml:"file_targets"`
-}
-
-func (t *TargetGroup) Discoverer() discovery.Discoverer {
-	if t.StaticTargets != nil {
-		return t.StaticTargets
-	}
-	if t.FileTargets != nil {
-		return t.FileTargets
-	}
-	return nil
+	StaticTargets  *StaticTargets  `json:"static_targets" yaml:"static_targets"`
+	FileTargets    *FileTargets    `json:"file_targets" yaml:"file_targets"`
+	ConsulSDConfig *ConsulSDConfig `json:"consul_sd_config" yaml:"consul_sd_config"`
 }
 
 // StaticTargets is a hardcoded list of Solana nodes.
@@ -97,4 +87,14 @@ func (d *FileTargets) DiscoverTargets(_ context.Context) ([]string, error) {
 	}
 
 	return lines, scn.Err()
+}
+
+// ConsulSDConfig configures Consul service discovery.
+type ConsulSDConfig struct {
+	Server     string `json:"host" yaml:"host"`
+	Token      string `json:"token" yaml:"token"`
+	TokenFile  string `json:"token_file" yaml:"token_file"`
+	Datacenter string `json:"datacenter" yaml:"datacenter"`
+	Service    string `json:"service" yaml:"service"`
+	Filter     string `json:"filter" yaml:"filter"`
 }
