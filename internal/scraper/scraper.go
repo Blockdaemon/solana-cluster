@@ -87,8 +87,6 @@ func (s *Scraper) scrape(ctx context.Context, results chan<- ProbeResult) {
 	s.Log.Debug("Scrape starting",
 		zap.Duration("discovery_duration", time.Since(discoveryStart)),
 		zap.Int("num_targets", len(targets)))
-	defer s.Log.Debug("Scrape finished",
-		zap.Duration("scrape_duration", time.Since(scrapeStart)))
 
 	var wg sync.WaitGroup
 	wg.Add(len(targets))
@@ -105,4 +103,7 @@ func (s *Scraper) scrape(ctx context.Context, results chan<- ProbeResult) {
 		}(target)
 	}
 	wg.Wait()
+
+	s.Log.Debug("Scrape finished",
+		zap.Duration("scrape_duration", time.Since(scrapeStart)))
 }
