@@ -18,6 +18,7 @@ package mirror
 import (
 	"context"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -86,6 +87,7 @@ func (w *Worker) tick(ctx context.Context) {
 		}
 	}
 
+	var wg sync.WaitGroup
 	for _, src := range files {
 		// TODO Consider using a semaphore
 		job := UploadJob{
@@ -94,8 +96,13 @@ func (w *Worker) tick(ctx context.Context) {
 			Uploader: w.Uploader,
 			Log:      w.Log.With(zap.String("snapshot", src.file.FileName)),
 		}
-		go job.Run(ctx)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			job.Run(ctx)
+		}()
 	}
+	wg.Wait()
 }
 
 type UploadJob struct {
