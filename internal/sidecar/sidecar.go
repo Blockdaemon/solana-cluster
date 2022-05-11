@@ -117,6 +117,7 @@ func (s *Handler) serveSnapshot(c *gin.Context, name string) {
 	snapFile, ok := baseFile.(io.ReadSeeker)
 	if !ok {
 		log.Error("Snapshot file is not an io.ReedSeeker")
+		return
 	}
 
 	info, err := baseFile.Stat()

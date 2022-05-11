@@ -17,6 +17,7 @@ package mirror
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -45,18 +46,17 @@ var (
 	s3Bucket        string
 	objectPrefix    string
 	s3Region        string
-	s3Secure        bool
 )
 
 func init() {
 	flags := Cmd.Flags()
 	flags.DurationVar(&refreshInterval, "refresh", 30*time.Second, "Refresh interval to discover new snapshots")
-	flags.StringVar(&trackerURL, "tracker", "", "URL to tracker API")
+	flags.StringVar(&trackerURL, "tracker", "http://localhost:8458", "URL to tracker API")
 	flags.StringVar(&s3URL, "s3-url", "", "URL to S3 API")
-	flags.BoolVar(&s3Secure, "s3-secure", true, "Use secure S3 transport")
 	flags.StringVar(&s3Region, "s3-region", "", "S3 region (optional)")
 	flags.StringVar(&s3Bucket, "s3-bucket", "", "Bucket name")
 	flags.StringVar(&objectPrefix, "s3-prefix", "", "Prefix for S3 object names (optional)")
+	flags.AddFlagSet(logger.Flags)
 }
 
 func run(cmd *cobra.Command) {
@@ -70,7 +70,11 @@ func run(cmd *cobra.Command) {
 
 	trackerClient := fetch.NewTrackerClient(trackerURL)
 
-	s3Client, err := minio.New(s3URL, &minio.Options{
+	parsedS3URL, err := url.Parse(s3URL)
+	cobra.CheckErr(err)
+	s3Secure := parsedS3URL.Scheme != "http"
+
+	s3Client, err := minio.New(parsedS3URL.Host, &minio.Options{
 		Creds:  credentials.NewEnvAWS(),
 		Secure: s3Secure,
 		Region: s3Region,

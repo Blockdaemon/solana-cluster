@@ -115,18 +115,19 @@ func run() {
 
 	// Setup progress bars for download.
 	bars := mpb.New()
-	sidecarClient := fetch.NewSidecarClient(snap.Target)
-	sidecarClient.SetProxyReaderFunc(func(name string, size int64, rd io.Reader) io.ReadCloser {
-		bar := bars.New(
-			size,
-			mpb.BarStyle(),
-			mpb.PrependDecorators(decor.Name(name)),
-			mpb.AppendDecorators(
-				decor.AverageSpeed(decor.UnitKB, "% .1f"),
-				decor.Percentage(),
-			),
-		)
-		return bar.ProxyReader(rd)
+	sidecarClient := fetch.NewSidecarClientWithOpts(snap.Target, fetch.SidecarClientOpts{
+		ProxyReaderFunc: func(name string, size int64, rd io.Reader) io.ReadCloser {
+			bar := bars.New(
+				size,
+				mpb.BarStyle(),
+				mpb.PrependDecorators(decor.Name(name)),
+				mpb.AppendDecorators(
+					decor.AverageSpeed(decor.UnitKB, "% .1f"),
+					decor.Percentage(),
+				),
+			)
+			return bar.ProxyReader(rd)
+		},
 	})
 
 	// Download.

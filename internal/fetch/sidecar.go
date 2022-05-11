@@ -20,11 +20,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"time"
 
 	"go.blockdaemon.com/solana/cluster-manager/types"
+	"go.uber.org/zap"
 	"gopkg.in/resty.v1"
 )
 
@@ -32,25 +34,41 @@ import (
 
 // SidecarClient accesses the sidecar API.
 type SidecarClient struct {
-	resty         *resty.Client
-	mkProxyReader func(name string, size int64, rd io.Reader) io.ReadCloser
+	resty           *resty.Client
+	log             *zap.Logger
+	proxyReaderFunc ProxyReaderFunc
 }
+
+type SidecarClientOpts struct {
+	Resty           *resty.Client
+	Log             *zap.Logger
+	ProxyReaderFunc ProxyReaderFunc
+}
+
+type ProxyReaderFunc func(name string, size int64, rd io.Reader) io.ReadCloser
 
 func NewSidecarClient(sidecarURL string) *SidecarClient {
-	return NewSidecarClientWithResty(resty.New().SetHostURL(sidecarURL))
+	return NewSidecarClientWithOpts(sidecarURL, SidecarClientOpts{})
 }
 
-func NewSidecarClientWithResty(client *resty.Client) *SidecarClient {
-	return &SidecarClient{
-		resty: client,
-		mkProxyReader: func(_ string, _ int64, rd io.Reader) io.ReadCloser {
-			return io.NopCloser(rd)
-		},
+func NewSidecarClientWithOpts(sidecarURL string, opts SidecarClientOpts) *SidecarClient {
+	if opts.Resty == nil {
+		opts.Resty = resty.New()
 	}
-}
-
-func (c *SidecarClient) SetProxyReaderFunc(m func(name string, size int64, rd io.Reader) io.ReadCloser) {
-	c.mkProxyReader = m
+	opts.Resty.SetHostURL(sidecarURL)
+	if opts.ProxyReaderFunc == nil {
+		opts.ProxyReaderFunc = func(_ string, _ int64, rd io.Reader) io.ReadCloser {
+			return io.NopCloser(rd)
+		}
+	}
+	if opts.Log == nil {
+		opts.Log = zap.NewNop()
+	}
+	return &SidecarClient{
+		resty:           opts.Resty,
+		log:             opts.Log,
+		proxyReaderFunc: opts.ProxyReaderFunc,
+	}
 }
 
 func (c *SidecarClient) ListSnapshots(ctx context.Context) (infos []*types.SnapshotInfo, err error) {
@@ -62,7 +80,7 @@ func (c *SidecarClient) ListSnapshots(ctx context.Context) (infos []*types.Snaps
 	if err != nil {
 		return nil, err
 	}
-	if err := expectOK(res.RawResponse); err != nil {
+	if err := expectOK(res.RawResponse, "list snapshots"); err != nil {
 		return nil, err
 	}
 	return
@@ -72,7 +90,8 @@ func (c *SidecarClient) ListSnapshots(ctx context.Context) (infos []*types.Snaps
 // The returned response is guaranteed to have a valid ContentLength.
 // The caller has the responsibility to close the response body even if the error is not nil.
 func (c *SidecarClient) StreamSnapshot(ctx context.Context, name string) (res *http.Response, err error) {
-	snapURL := c.resty.HostURL + "/" + name
+	snapURL := c.resty.HostURL + "/v1/snapshot/" + url.PathEscape(name)
+	c.log.Debug("Downloading snapshot", zap.String("snapshot_url", snapURL))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, snapURL, nil)
 	if err != nil {
 		return nil, err
@@ -81,7 +100,7 @@ func (c *SidecarClient) StreamSnapshot(ctx context.Context, name string) (res *h
 	if err != nil {
 		return
 	}
-	if err = expectOK(res); err != nil {
+	if err = expectOK(res, "download snapshot"); err != nil {
 		return
 	}
 	if res.ContentLength < 0 {
@@ -108,7 +127,7 @@ func (c *SidecarClient) DownloadSnapshotFile(ctx context.Context, destDir string
 	defer f.Close()
 
 	// Download
-	proxyRd := c.mkProxyReader(name, res.ContentLength, res.Body)
+	proxyRd := c.proxyReaderFunc(name, res.ContentLength, res.Body)
 	_, err = io.Copy(f, proxyRd)
 	if err != nil {
 		_ = proxyRd.Close()
@@ -132,9 +151,9 @@ func (c *SidecarClient) DownloadSnapshotFile(ctx context.Context, destDir string
 	return nil
 }
 
-func expectOK(res *http.Response) error {
+func expectOK(res *http.Response, op string) error {
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("get snapshots: %s", res.Status)
+		return fmt.Errorf("%s: %s", op, res.Status)
 	}
 	return nil
 }

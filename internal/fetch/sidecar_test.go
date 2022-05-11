@@ -25,7 +25,7 @@ func TestConnectError(t *testing.T) {
 	assert.Error(t, err)
 
 	err = client.DownloadSnapshotFile(context.TODO(), "/nonexistent9", "snap")
-	assert.EqualError(t, err, "Get \"invalid://e/snap\": unsupported protocol scheme \"invalid\"")
+	assert.EqualError(t, err, "Get \"invalid://e/v1/snapshot/snap\": unsupported protocol scheme \"invalid\"")
 }
 
 func TestInternalServerError(t *testing.T) {
@@ -34,13 +34,13 @@ func TestInternalServerError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewSidecarClientWithResty(resty.NewWithClient(server.Client()).SetHostURL(server.URL))
+	client := NewSidecarClientWithOpts(server.URL, SidecarClientOpts{Resty: resty.NewWithClient(server.Client())})
 
 	_, err := client.ListSnapshots(context.TODO())
-	assert.EqualError(t, err, "get snapshots: 500 Internal Server Error")
+	assert.EqualError(t, err, "list snapshots: 500 Internal Server Error")
 
 	err = client.DownloadSnapshotFile(context.TODO(), "/nonexistent3", "bla")
-	assert.EqualError(t, err, "get snapshots: 500 Internal Server Error")
+	assert.EqualError(t, err, "download snapshot: 500 Internal Server Error")
 }
 
 func TestSidecarClient_DownloadSnapshotFile(t *testing.T) {
@@ -49,7 +49,7 @@ func TestSidecarClient_DownloadSnapshotFile(t *testing.T) {
 
 	// Start server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "/bla.tar.zst", r.URL.Path)
+		assert.Equal(t, "/v1/snapshot/bla.tar.zst", r.URL.Path)
 		w.Header().Set("content-length", "100")
 		w.Header().Set("last-modified", "Wed, 01 Jan 2020 01:01:01 GMT")
 		w.WriteHeader(http.StatusOK)
@@ -59,13 +59,15 @@ func TestSidecarClient_DownloadSnapshotFile(t *testing.T) {
 
 	// Create client
 	var proxyReader atomic.Value
-	client := NewSidecarClientWithResty(resty.NewWithClient(server.Client()).SetHostURL(server.URL))
-	client.SetProxyReaderFunc(func(name string, size_ int64, rd io.Reader) io.ReadCloser {
-		assert.Equal(t, snapshotName, name)
-		assert.Equal(t, int64(size), size_)
-		proxy := &mockReadCloser{rd: rd}
-		assert.True(t, proxyReader.CompareAndSwap(nil, proxy))
-		return proxy
+	client := NewSidecarClientWithOpts(server.URL, SidecarClientOpts{
+		Resty: resty.NewWithClient(server.Client()),
+		ProxyReaderFunc: func(name string, size_ int64, rd io.Reader) io.ReadCloser {
+			assert.Equal(t, snapshotName, name)
+			assert.Equal(t, int64(size), size_)
+			proxy := &mockReadCloser{rd: rd}
+			assert.True(t, proxyReader.CompareAndSwap(nil, proxy))
+			return proxy
+		},
 	})
 
 	// Temp dir

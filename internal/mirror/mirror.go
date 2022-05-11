@@ -47,6 +47,9 @@ func NewWorker(tracker *fetch.TrackerClient, uploader *Uploader) *Worker {
 }
 
 func (w *Worker) Run(ctx context.Context) {
+	w.Log.Info("Worker starting")
+	defer w.Log.Info("Worker stopped")
+
 	ticker := time.NewTicker(w.Refresh)
 	defer ticker.Stop()
 	for {
@@ -60,6 +63,7 @@ func (w *Worker) Run(ctx context.Context) {
 }
 
 func (w *Worker) tick(ctx context.Context) {
+	w.Log.Debug("Tick")
 	sources, err := w.Tracker.GetBestSnapshots(ctx, w.SyncCount)
 	if err != nil {
 		w.Log.Error("Failed to find new snapshots", zap.Error(err))
@@ -75,7 +79,7 @@ func (w *Worker) tick(ctx context.Context) {
 		for _, file := range src.Files {
 			if _, ok := files[file.Slot]; !ok {
 				files[file.Slot] = fileSource{
-					target: src.Target,
+					target: "http://" + src.Target, // TODO don't hardcode protocol scheme
 					file:   file,
 				}
 			}
@@ -88,6 +92,7 @@ func (w *Worker) tick(ctx context.Context) {
 			Provider: src.target,
 			File:     src.file,
 			Uploader: w.Uploader,
+			Log:      w.Log.With(zap.String("snapshot", src.file.FileName)),
 		}
 		go job.Run(ctx)
 	}
@@ -102,32 +107,33 @@ type UploadJob struct {
 
 func (j *UploadJob) Run(ctx context.Context) {
 	fileName := j.File.FileName
-	log := j.Log.With(zap.String("snapshot", fileName))
 	// Check if snapshot exists.
 	stat, statErr := j.Uploader.StatSnapshot(ctx, fileName)
 	if statErr == nil {
-		log.Debug("Already uploaded",
+		j.Log.Debug("Already uploaded",
 			zap.Time("last_modified", stat.LastModified))
 		return
 	}
 	statResp := minio.ToErrorResponse(statErr)
 	if statResp.StatusCode != http.StatusNotFound {
-		log.Error("Unexpected error", zap.Error(statErr))
+		j.Log.Error("Unexpected error", zap.Error(statErr))
 		return
 	}
 
 	// TODO use client factory
-	sidecarClient := fetch.NewSidecarClient(j.Provider)
+	sidecarClient := fetch.NewSidecarClientWithOpts(j.Provider, fetch.SidecarClientOpts{
+		Log: j.Log.Named("fetch"),
+	})
 
 	beforeUpload := time.Now()
 	uploadInfo, err := j.Uploader.UploadSnapshot(ctx, sidecarClient, fileName)
 	uploadDuration := time.Since(beforeUpload)
 	if err != nil {
-		log.Error("Upload failed", zap.Error(err),
+		j.Log.Error("Upload failed", zap.Error(err),
 			zap.Duration("upload_duration", uploadDuration))
 		return
 	}
-	log.Info("Upload succeeded",
+	j.Log.Info("Upload succeeded",
 		zap.String("bucket", uploadInfo.Bucket),
 		zap.String("object", uploadInfo.Key),
 		zap.Duration("upload_duration", uploadDuration))

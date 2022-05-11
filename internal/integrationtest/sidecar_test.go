@@ -39,9 +39,8 @@ import (
 func TestSidecar(t *testing.T) {
 	server, root := newSidecar(t, 100)
 	defer server.Close()
-	client := fetch.NewSidecarClientWithResty(
-		resty.NewWithClient(server.Client()).
-			SetHostURL(server.URL))
+	client := fetch.NewSidecarClientWithOpts(server.URL,
+		fetch.SidecarClientOpts{Resty: resty.NewWithClient(server.Client())})
 
 	ctx := context.TODO()
 
