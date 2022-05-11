@@ -90,13 +90,15 @@ func (s *Handler) DownloadSnapshot(c *gin.Context) {
 	name := c.Param("name")
 	snapshot := ledger.ParseSnapshotFileName(name)
 	if snapshot == nil {
+		s.Log.Info("Ignoring snapshot download request due to odd name", zap.String("snapshot", name))
 		returnSnapshotNotFound(c)
 		return
 	}
 	switch snapshot.Ext {
-	case ".tar.bz2", ".tar.gz", "tar.zst", ".tar.xz", ".tar":
+	case ".tar.bz2", ".tar.gz", ".tar.zst", ".tar.xz", ".tar":
 		// ok
 	default:
+		s.Log.Info("Ignoring snapshot download request due to odd extension", zap.String("snapshot", name))
 		returnSnapshotNotFound(c)
 		return
 	}
