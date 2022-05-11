@@ -110,13 +110,19 @@ func (s *Handler) serveSnapshot(c *gin.Context, name string) {
 	// Open file.
 	baseFile, err := s.LedgerDir.Open(name)
 	if errors.Is(err, fs.ErrNotExist) {
+		log.Info("Requested snapshot not found")
 		returnSnapshotNotFound(c)
+		return
+	} else if err != nil {
+		log.Error("Failed to open file", zap.Error(err))
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 	defer baseFile.Close()
 	snapFile, ok := baseFile.(io.ReadSeeker)
 	if !ok {
 		log.Error("Snapshot file is not an io.ReedSeeker")
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 

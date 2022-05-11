@@ -68,6 +68,13 @@ func TestSidecar(t *testing.T) {
 			infos,
 		)
 	})
+
+	t.Run("DownloadSnapshot", func(t *testing.T) {
+		res, err := client.StreamSnapshot(ctx, "snapshot-100-7jMmeXZSNcWPrB2RsTdeXfXrsyW5c1BfPjqoLW2X5T7V.tar.bz2")
+		require.NoError(t, err)
+		assert.Equal(t, int64(1), res.ContentLength)
+		require.NoError(t, res.Body.Close())
+	})
 }
 
 func newSidecar(t *testing.T, slots ...uint64) (server *httptest.Server, root *ledgertest.FS) {
