@@ -132,6 +132,7 @@ func (j *UploadJob) Run(ctx context.Context) {
 		Log: j.Log.Named("fetch"),
 	})
 
+	j.Log.Info("Starting upload")
 	beforeUpload := time.Now()
 	uploadInfo, err := j.Uploader.UploadSnapshot(ctx, sidecarClient, fileName)
 	uploadDuration := time.Since(beforeUpload)
