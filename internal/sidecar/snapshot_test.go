@@ -25,13 +25,13 @@ import (
 	"go.uber.org/zap/zaptest"
 )
 
-func newRouter(h *Handler) http.Handler {
+func newRouter(h *SnapshotHandler) http.Handler {
 	router := gin.Default()
 	h.RegisterHandlers(router)
 	return router
 }
 
-func testRequest(h *Handler, req *http.Request) *httptest.ResponseRecorder {
+func testRequest(h *SnapshotHandler, req *http.Request) *httptest.ResponseRecorder {
 	router := newRouter(h)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
@@ -39,7 +39,7 @@ func testRequest(h *Handler, req *http.Request) *httptest.ResponseRecorder {
 }
 
 func TestHandler_ListSnapshots_Error(t *testing.T) {
-	h := NewHandler("???/some/nonexistent/path", zaptest.NewLogger(t))
+	h := NewSnapshotHandler("???/some/nonexistent/path", zaptest.NewLogger(t))
 
 	req, err := http.NewRequest(http.MethodGet, "/snapshots", nil)
 	require.NoError(t, err)
