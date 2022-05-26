@@ -18,8 +18,8 @@ if [[ -z $GITHUB_TOKEN ]]; then
   exit 1
 fi
 
-if [[ -z $CI_TAG ]]; then
-  echo Error: CI_TAG not defined
+if [[ -z $BUILDKITE_TAG ]]; then
+  echo Error: BUILDKITE_TAG not defined
   exit 1
 fi
 
@@ -33,14 +33,14 @@ if [[ -z $CI_REPO_SLUG ]]; then
 fi
 
 releaseId=$( \
-  curl -s "https://api.github.com/repos/$CI_REPO_SLUG/releases/tags/$CI_TAG" \
+  curl -s "https://api.github.com/repos/$CI_REPO_SLUG/releases/tags/$BUILDKITE_TAG" \
   | grep -m 1 \"id\": \
   | sed -ne 's/^[^0-9]*\([0-9]*\),$/\1/p' \
 )
-echo "Github release id for $CI_TAG is $releaseId"
+echo "Github release id for $BUILDKITE_TAG is $releaseId"
 
 for file in "$@"; do
-  echo "--- Uploading $file to tag $CI_TAG of $CI_REPO_SLUG"
+  echo "--- Uploading $file to tag $BUILDKITE_TAG of $CI_REPO_SLUG"
   curl \
     --verbose \
     --data-binary @"$file" \
