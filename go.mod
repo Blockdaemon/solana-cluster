@@ -11,7 +11,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.29
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spf13/afero v1.8.2
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.3
 	github.com/vbauerster/mpb/v7 v7.4.2
