@@ -28,22 +28,22 @@ import (
 	"go.uber.org/zap"
 )
 
-// Handler implements the sidecar API methods.
-type Handler struct {
+// SnapshotHandler implements the snapshot-related sidecar API methods.
+type SnapshotHandler struct {
 	LedgerDir fs.FS
 	Log       *zap.Logger
 }
 
-// NewHandler creates a new sidecar API using the provided ledger dir and logger.
-func NewHandler(ledgerDir string, log *zap.Logger) *Handler {
-	return &Handler{
+// NewSnapshotHandler creates a new sidecar snapshot API handler using the provided ledger dir and logger.
+func NewSnapshotHandler(ledgerDir string, log *zap.Logger) *SnapshotHandler {
+	return &SnapshotHandler{
 		LedgerDir: os.DirFS(ledgerDir),
 		Log:       log,
 	}
 }
 
 // RegisterHandlers registers this API with Gin web framework.
-func (s *Handler) RegisterHandlers(group gin.IRoutes) {
+func (s *SnapshotHandler) RegisterHandlers(group gin.IRoutes) {
 	group.GET("/snapshots", s.ListSnapshots)
 	group.HEAD("/snapshot.tar.bz2", s.DownloadBestSnapshot)
 	group.GET("/snapshot.tar.bz2", s.DownloadBestSnapshot)
@@ -54,7 +54,7 @@ func (s *Handler) RegisterHandlers(group gin.IRoutes) {
 }
 
 // ListSnapshots is an API handler listing available snapshots on the node.
-func (s *Handler) ListSnapshots(c *gin.Context) {
+func (s *SnapshotHandler) ListSnapshots(c *gin.Context) {
 	infos, err := ledger.ListSnapshots(s.LedgerDir)
 	if err != nil {
 		s.Log.Error("Failed to list snapshots", zap.Error(err))
@@ -68,7 +68,7 @@ func (s *Handler) ListSnapshots(c *gin.Context) {
 }
 
 // DownloadBestSnapshot selects the best full snapshot and sends it to the client.
-func (s *Handler) DownloadBestSnapshot(c *gin.Context) {
+func (s *SnapshotHandler) DownloadBestSnapshot(c *gin.Context) {
 	files, err := ledger.ListSnapshotFiles(s.LedgerDir)
 	if err != nil {
 		s.Log.Error("Failed to list snapshot files", zap.Error(err))
@@ -85,7 +85,7 @@ func (s *Handler) DownloadBestSnapshot(c *gin.Context) {
 }
 
 // DownloadSnapshot sends a snapshot to the client.
-func (s *Handler) DownloadSnapshot(c *gin.Context) {
+func (s *SnapshotHandler) DownloadSnapshot(c *gin.Context) {
 	// Parse name and reject odd requests.
 	name := c.Param("name")
 	snapshot := ledger.ParseSnapshotFileName(name)
@@ -106,7 +106,7 @@ func (s *Handler) DownloadSnapshot(c *gin.Context) {
 	s.serveSnapshot(c, name)
 }
 
-func (s *Handler) serveSnapshot(c *gin.Context, name string) {
+func (s *SnapshotHandler) serveSnapshot(c *gin.Context, name string) {
 	log := s.Log.With(zap.String("snapshot", name))
 
 	// Open file.

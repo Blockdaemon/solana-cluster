@@ -41,6 +41,7 @@ var (
 	netInterface string
 	listenPort   uint16
 	ledgerDir    string
+	rpcWsUrl     string
 )
 
 func init() {
@@ -48,6 +49,7 @@ func init() {
 	flags.StringVar(&netInterface, "interface", "", "Only accept connections from this interface")
 	flags.Uint16Var(&listenPort, "port", 13080, "Listen port")
 	flags.StringVar(&ledgerDir, "ledger", "", "Path to ledger dir")
+	flags.StringVar(&rpcWsUrl, "ws", "ws://localhost:8900", "Solana RPC PubSub WebSocket endpoint")
 	flags.AddFlagSet(logger.Flags)
 }
 
@@ -68,8 +70,12 @@ func run() {
 	server.Use(ginzap.RecoveryWithZap(httpLog, false))
 
 	groupV1 := server.Group("/v1")
-	handler := sidecar.NewHandler(ledgerDir, httpLog)
-	handler.RegisterHandlers(groupV1)
+
+	snapshotHandler := sidecar.NewSnapshotHandler(ledgerDir, httpLog)
+	snapshotHandler.RegisterHandlers(groupV1)
+
+	consensusHandler := sidecar.NewConsensusHandler(rpcWsUrl, httpLog)
+	consensusHandler.RegisterHandlers(groupV1)
 
 	err = server.RunListener(listener)
 	log.Error("Server stopped", zap.Error(err))
