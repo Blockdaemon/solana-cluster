@@ -86,7 +86,7 @@ func newSidecar(t *testing.T, slots ...uint64) (server *httptest.Server, root *l
 	}
 	ledgerDir := root.GetLedgerDir(t)
 
-	handler := &sidecar.Handler{
+	handler := &sidecar.SnapshotHandler{
 		LedgerDir: ledgerDir,
 		Log:       zaptest.NewLogger(t),
 	}
