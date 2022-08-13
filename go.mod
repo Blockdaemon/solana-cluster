@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/vbauerster/mpb/v7 v7.4.2
 	go.uber.org/atomic v1.9.0
-	go.uber.org/zap v1.21.0
+	go.uber.org/zap v1.22.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v3 v3.0.1
