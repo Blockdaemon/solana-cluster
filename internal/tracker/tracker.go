@@ -16,27 +16,33 @@
 package tracker
 
 import (
+	"context"
+	"time"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.blockdaemon.com/solana/cluster-manager/internal/index"
 	"go.blockdaemon.com/solana/cluster-manager/types"
+	"github.com/gagliardetto/solana-go/rpc" 
 )
 
 // Handler implements the tracker API methods.
 type Handler struct {
 	DB *index.DB
+	RPC *rpc.Client
+	MaxSnapshotAge uint64
 }
 
 // NewHandler creates a new tracker API using the provided database.
-func NewHandler(db *index.DB) *Handler {
-	return &Handler{DB: db}
+func NewHandler(db *index.DB, rpcURL string, maxSnapshotAge uint64) *Handler {
+	return &Handler{DB: db, RPC: rpc.New(rpcURL), MaxSnapshotAge: maxSnapshotAge}
 }
 
 // RegisterHandlers registers this API with Gin web framework.
 func (h *Handler) RegisterHandlers(group gin.IRoutes) {
 	group.GET("/snapshots", h.GetSnapshots)
 	group.GET("/best_snapshots", h.GetBestSnapshots)
+	group.GET("/health", h.Health)
 }
 
 func (h *Handler) GetSnapshots(c *gin.Context) {
@@ -65,4 +71,48 @@ func (h *Handler) GetBestSnapshots(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, sources)
+}
+
+func (h *Handler) Health(c *gin.Context) {
+	var query struct {
+		Max int `form:"max"`
+	}
+	if err := c.BindQuery(&query); err != nil {
+		return
+	}
+	query.Max = 1
+	entries := h.DB.GetBestSnapshots(query.Max)
+
+	var health struct {
+		MaxSnapshot uint64
+		CurrentSlot uint64
+		Health string
+	}
+
+	if len(entries) <= 0 {
+		health.Health = "no snapshots found"
+		c.JSON(http.StatusInternalServerError, health)
+	} else {
+		health.MaxSnapshot = entries[0].Info.Slot
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
+		out, err := h.RPC.GetSlot(
+			ctx,
+			rpc.CommitmentFinalized,
+		)
+		if err != nil {
+			health.Health = "rpc unhealthy"
+			c.JSON(http.StatusBadGateway, health)
+		}
+		health.CurrentSlot = out
+
+		if (health.CurrentSlot - health.MaxSnapshot) > h.MaxSnapshotAge {
+			health.Health = "snapshot too old"
+			c.JSON(http.StatusServiceUnavailable, health)
+		} else {
+			health.Health = "healthy"
+			c.JSON(http.StatusOK, health)
+		}
+	}
 }
