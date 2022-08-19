@@ -53,6 +53,8 @@ var (
 	configPath     string
 	internalListen string
 	listen         string
+	rpc	       string
+	maxSnapshotAge uint64
 )
 
 func init() {
@@ -60,6 +62,8 @@ func init() {
 	flags.StringVar(&configPath, "config", "", "Path to config file")
 	flags.StringVar(&internalListen, "internal-listen", ":8457", "Internal listen URL")
 	flags.StringVar(&listen, "listen", ":8458", "Listen URL")
+	flags.StringVar(&rpc, "rpc", "http://localhost:8899", "RPC url for health check")
+	flags.Uint64Var(&maxSnapshotAge, "max-snapshot-age", 1000, "Maxium age of latest snapshot for tracker to be considered healthy")
 	flags.AddFlagSet(logger.Flags)
 }
 
@@ -105,7 +109,7 @@ func run() {
 	server.Use(ginzap.Ginzap(httpLog, time.RFC3339, true))
 	server.Use(ginzap.RecoveryWithZap(httpLog, false))
 
-	handler := tracker.NewHandler(db)
+	handler := tracker.NewHandler(db, rpc, maxSnapshotAge)
 	handler.RegisterHandlers(server.Group("/v1"))
 
 	// Start services.
