@@ -91,7 +91,7 @@ func (c *SidecarClient) ListSnapshots(ctx context.Context) (infos []*types.Snaps
 // The caller has the responsibility to close the response body even if the error is not nil.
 func (c *SidecarClient) StreamSnapshot(ctx context.Context, name string) (res *http.Response, err error) {
 	snapURL := c.resty.HostURL + "/v1/snapshot/" + url.PathEscape(name)
-	c.log.Debug("Downloading snapshot", zap.String("snapshot_url", snapURL))
+	c.log.Info("Downloading snapshot", zap.String("snapshot_url", snapURL))
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, snapURL, nil)
 	if err != nil {
 		return nil, err

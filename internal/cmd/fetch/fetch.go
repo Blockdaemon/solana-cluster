@@ -64,7 +64,7 @@ func init() {
 }
 
 func run() {
-	log := logger.GetConsoleLogger()
+	log := logger.GetLogger()
 
 	// Regardless which API we talk to, we want to cap time from request to response header.
 	// This defends against black holes and really slow servers.
@@ -111,7 +111,7 @@ func run() {
 	// Print snapshot to user.
 	snap := &remoteSnaps[0]
 	buf, _ := json.MarshalIndent(snap, "", "\t")
-	log.Info("Downloading a snapshot", zap.ByteString("snap", buf))
+	log.Info("Downloading a snapshot", zap.ByteString("snap", buf), zap.String("target", snap.Target))
 
 	// Setup progress bars for download.
 	bars := mpb.New()
