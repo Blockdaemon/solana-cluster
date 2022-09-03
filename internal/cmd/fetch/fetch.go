@@ -139,7 +139,8 @@ func run() {
 			err := sidecarClient.DownloadSnapshotFile(ctx, ".", file_.FileName)
 			if err != nil {
 				log.Error("Download failed",
-					zap.String("snapshot", file_.FileName))
+					zap.String("snapshot", file_.FileName),
+					zap.String("error", err.Error()))
 			}
 			return err
 		})
