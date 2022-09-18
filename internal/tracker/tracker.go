@@ -17,19 +17,19 @@ package tracker
 
 import (
 	"context"
-	"time"
 	"net/http"
+	"time"
 
+	"github.com/gagliardetto/solana-go/rpc"
 	"github.com/gin-gonic/gin"
 	"go.blockdaemon.com/solana/cluster-manager/internal/index"
 	"go.blockdaemon.com/solana/cluster-manager/types"
-	"github.com/gagliardetto/solana-go/rpc" 
 )
 
 // Handler implements the tracker API methods.
 type Handler struct {
-	DB *index.DB
-	RPC *rpc.Client
+	DB             *index.DB
+	RPC            *rpc.Client
 	MaxSnapshotAge uint64
 }
 
@@ -86,7 +86,7 @@ func (h *Handler) Health(c *gin.Context) {
 	var health struct {
 		MaxSnapshot uint64
 		CurrentSlot uint64
-		Health string
+		Health      string
 	}
 
 	if len(entries) <= 0 {
@@ -104,15 +104,18 @@ func (h *Handler) Health(c *gin.Context) {
 		if err != nil {
 			health.Health = "rpc unhealthy"
 			c.JSON(http.StatusBadGateway, health)
+			return
 		}
 		health.CurrentSlot = out
 
 		if (health.CurrentSlot - health.MaxSnapshot) > h.MaxSnapshotAge {
 			health.Health = "snapshot too old"
 			c.JSON(http.StatusServiceUnavailable, health)
+			return
 		} else {
 			health.Health = "healthy"
 			c.JSON(http.StatusOK, health)
+			return
 		}
 	}
 }
