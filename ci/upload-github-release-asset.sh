@@ -41,12 +41,18 @@ echo "Github release id for $BUILDKITE_TAG is $releaseId"
 
 for file in "$@"; do
   echo "--- Uploading $file to tag $BUILDKITE_TAG of $CI_REPO_SLUG"
-  curl \
-    --verbose \
-    --data-binary @"$file" \
-    -H "Authorization: token $GITHUB_TOKEN" \
-    -H "Content-Type: application/octet-stream" \
-    "https://uploads.github.com/repos/$CI_REPO_SLUG/releases/$releaseId/assets?name=$(basename "$file")"
-  echo
+  for i in {0..9}
+  do
+    curl \
+      --verbose \
+      --data-binary @"$file" \
+      -H "Authorization: token $GITHUB_TOKEN" \
+      -H "Content-Type: application/octet-stream" \
+      "https://uploads.github.com/repos/$CI_REPO_SLUG/releases/$releaseId/assets?name=$(basename "$file")" && gfs=0 || gfs=1
+    echo
+    if [ $gfs -eq 0 ]
+    then
+      break
+    fi
+  done
 done
-
