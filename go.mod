@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/gagliardetto/solana-go v1.8.1
 	github.com/gin-contrib/zap v0.1.0
-	github.com/gin-gonic/gin v1.8.1
+	github.com/gin-gonic/gin v1.8.2
 	github.com/hashicorp/consul/api v1.18.0
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/minio/minio-go/v7 v7.0.45
@@ -44,8 +44,8 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
-	github.com/go-playground/validator/v10 v10.10.0 // indirect
-	github.com/goccy/go-json v0.9.7 // indirect
+	github.com/go-playground/validator/v10 v10.11.1 // indirect
+	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -64,7 +64,7 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
@@ -76,7 +76,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mostynb/zstdpool-freelist v0.0.0-20201229113212-927304c0c3b1 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
@@ -96,10 +96,10 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
-	golang.org/x/sys v0.0.0-20220909162455-aba9fc2a8ff2 // indirect
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.4.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/term v0.3.0 // indirect
+	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
