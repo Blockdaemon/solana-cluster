@@ -39,6 +39,11 @@ var schema = memdb.DBSchema{
 					Unique:  false,
 					Indexer: &memdb.UintFieldIndex{Field: "InverseSlot"},
 				},
+				"base_slot": {
+					Name:    "base_slot",
+					Unique:  false,
+					Indexer: &memdb.UintFieldIndex{Field: "BaseSlot"},
+				},
 			},
 		},
 	},

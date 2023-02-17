@@ -94,6 +94,7 @@ func buildSnapshotInfo(files []*types.SnapshotFile, target *types.SnapshotFile) 
 	}
 	return &types.SnapshotInfo{
 		Slot:      target.Slot,
+		BaseSlot:  chain[len(chain)-1].Slot,
 		Hash:      target.Hash,
 		Files:     chain,
 		TotalSize: totalSize,

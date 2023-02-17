@@ -30,7 +30,9 @@ import (
 	"go.blockdaemon.com/solana/cluster-manager/internal/fetch"
 	"go.blockdaemon.com/solana/cluster-manager/internal/ledger"
 	"go.blockdaemon.com/solana/cluster-manager/internal/logger"
+	"go.blockdaemon.com/solana/cluster-manager/types"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/resty.v1"
 )
 
@@ -48,6 +50,9 @@ var (
 	trackerURL      string
 	minSnapAge      uint64
 	maxSnapAge      uint64
+	baseSlot        uint64
+	fullSnap        bool
+	incrementalSnap bool
 	requestTimeout  time.Duration
 	downloadTimeout time.Duration
 )
@@ -60,10 +65,17 @@ func init() {
 	flags.Uint64Var(&maxSnapAge, "max-slots", 10000, "Refuse to download <n> slots older than the newest")
 	flags.DurationVar(&requestTimeout, "request-timeout", 3*time.Second, "Max time to wait for headers (excluding download)")
 	flags.DurationVar(&downloadTimeout, "download-timeout", 10*time.Minute, "Max time to try downloading in total")
+	flags.Uint64Var(&baseSlot, "slot", 0, "Download snapshot for given slot (if available)")
+	flags.BoolVar(&fullSnap, "full", true, "Download full snapshot (if available)")
+	flags.BoolVar(&incrementalSnap, "incremental", true, "Download incremental snapshot (if available)")
 }
 
 func run() {
 	log := logger.GetLogger()
+
+	if !fullSnap && !incrementalSnap {
+		log.Fatal("Must specify at least one of --full or --incremental")
+	}
 
 	// Regardless which API we talk to, we want to cap time from request to response header.
 	// This defends against black holes and really slow servers.
@@ -83,31 +95,54 @@ func run() {
 		log.Fatal("Failed to check existing snapshots", zap.Error(err))
 	}
 
-	// Ask tracker for best snapshots.
+	// Get a specific snapshot or "best snapshot" from tracker client
 	trackerClient := fetch.NewTrackerClientWithResty(
 		resty.New().
 			SetHostURL(trackerURL).
 			SetTimeout(requestTimeout),
 	)
-	remoteSnaps, err := trackerClient.GetBestSnapshots(ctx, -1)
-	if err != nil {
-		log.Fatal("Failed to request snapshot info", zap.Error(err))
-	}
 
-	// Decide what we want to do.
-	_, advice := fetch.ShouldFetchSnapshot(localSnaps, remoteSnaps, minSnapAge, maxSnapAge)
-	switch advice {
-	case fetch.AdviceNothingFound:
-		log.Error("No snapshots available remotely")
-		return
-	case fetch.AdviceUpToDate:
-		log.Info("Existing snapshot is recent enough, no download needed",
-			zap.Uint64("existing_slot", localSnaps[0].Slot))
-		return
-	case fetch.AdviceFetch:
+	var remoteSnaps []types.SnapshotSource
+
+	if baseSlot != 0 {
+		log.Info("Fetching snapshots at slot", zap.Uint64("base_slot", baseSlot))
+
+		// Ask tracker for snapshots at a specific location
+		remoteSnaps, err = trackerClient.GetSnapshotAtSlot(ctx, baseSlot)
+		if err != nil {
+			log.Fatal("Failed to fetch snapshot info", zap.Error(err))
+		}
+
+		// @TODO check if this snapshot already exists
+	} else {
+		log.Info("Finding best snapshot")
+
+		// Ask tracker for best snapshots.
+		remoteSnaps, err = trackerClient.GetBestSnapshots(ctx, -1)
+		if err != nil {
+			log.Fatal("Failed to request snapshot info", zap.Error(err))
+		}
+
+		// Decide what we want to do.
+		_, advice := fetch.ShouldFetchSnapshot(localSnaps, remoteSnaps, minSnapAge, maxSnapAge)
+		switch advice {
+		case fetch.AdviceNothingFound:
+			log.Error("No snapshots available remotely")
+			return
+		case fetch.AdviceUpToDate:
+			log.Info("Existing snapshot is recent enough, no download needed",
+				zap.Uint64("existing_slot", localSnaps[0].Slot))
+			return
+		case fetch.AdviceFetch:
+		}
 	}
 
 	// Print snapshot to user.
+	log.Info("Number of remote snaps found: ", zap.Int("num", len(remoteSnaps)))
+	if len(remoteSnaps) == 0 {
+		log.Fatal("Could not find any matching snapshots. Bailing.")
+	}
+
 	snap := &remoteSnaps[0]
 	buf, _ := json.MarshalIndent(snap, "", "\t")
 	log.Info("Downloading a snapshot", zap.ByteString("snap", buf), zap.String("target", snap.Target))
@@ -129,23 +164,64 @@ func run() {
 		},
 	})
 
-	// Download.
-	var downloadErr error
-	beforeDownload := time.Now()
-	for _, file := range snap.Files {
-		file_ := file
-		downloadErr = sidecarClient.DownloadSnapshotFile(ctx, ".", file_.FileName)
-		if downloadErr != nil {
-			log.Error("Download failed",
-				zap.String("snapshot", file_.FileName),
-				zap.String("error", err.Error()))
+	// First pass, if we're fetching fullSnap we want to fetch the fullSnaps but **not** the incremental snap
+	// Then after completion of the full snap download, we refetch the incremental one so we get the latest one
+	if fullSnap {
+		downloadSnapshot(ctx, sidecarClient, snap, true, false)
+
+		// If we were downloading a full snapshot, check if there's a newer incremental snapshot we can fetch
+		// Find latest incremental snapshot
+		log.Info("Finding incremental snapshot for full slot", zap.Uint64("base_slot", snap.BaseSlot))
+		remoteSnaps, err = trackerClient.GetSnapshotAtSlot(ctx, snap.BaseSlot)
+		if err != nil {
+			log.Fatal("Failed to request snapshot info", zap.Error(err))
 		}
+
+		if len(remoteSnaps) == 0 {
+			log.Fatal("No incremental snapshot found")
+		}
+
+		snap = &remoteSnaps[0]
+		buf, _ = json.MarshalIndent(snap, "", "\t")
+		log.Info("Downloading incremental snapshot", zap.ByteString("snap", buf), zap.String("target", snap.Target))
 	}
+
+	// This will fetch the latest incremental snapshot (if fullSnap was specified it would already have been fetched and refreshed)
+	downloadSnapshot(ctx, sidecarClient, snap, false, true)
+}
+
+func downloadSnapshot(ctx context.Context, sidecarClient *fetch.SidecarClient, snap *types.SnapshotSource, full bool, incremental bool) {
+	log := logger.GetLogger()
+
+	// Download the snapshot files
+	beforeDownload := time.Now()
+	group, ctx := errgroup.WithContext(ctx)
+	for _, file := range snap.Files {
+		if file.BaseSlot != 0 && !incremental {
+			continue
+		}
+		if file.BaseSlot == 0 && !full {
+			continue
+		}
+
+		file_ := file
+		group.Go(func() error {
+			err := sidecarClient.DownloadSnapshotFile(ctx, ".", file_.FileName)
+			if err != nil {
+				log.Error("Full snapshot download failed",
+					zap.String("snapshot", file_.FileName),
+					zap.String("error", err.Error()))
+			}
+			return err
+		})
+	}
+	downloadErr := group.Wait()
 	downloadDuration := time.Since(beforeDownload)
 
 	if downloadErr == nil {
-		log.Info("Download completed", zap.Duration("download_time", downloadDuration))
+		log.Info("Snapshot download completed", zap.Duration("download_time", downloadDuration))
 	} else {
 		log.Fatal("Aborting download", zap.Duration("download_time", downloadDuration))
 	}
+
 }

@@ -72,7 +72,7 @@ func (c *Collector) run() {
 		entries := make([]*index.SnapshotEntry, len(res.Infos))
 		for i, info := range res.Infos {
 			entries[i] = &index.SnapshotEntry{
-				SnapshotKey: index.NewSnapshotKey(res.Target, info.Slot),
+				SnapshotKey: index.NewSnapshotKey(res.Target, info.Slot, info.BaseSlot),
 				Info:        info,
 				UpdatedAt:   res.Time,
 			}

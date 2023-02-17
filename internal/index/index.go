@@ -101,6 +101,19 @@ func (d *DB) GetBestSnapshots(max int) (entries []*SnapshotEntry) {
 	return
 }
 
+// Fetches the snapshots that are at a given slot.
+func (d *DB) GetSnapshotsAtSlot(slot uint64) (entries []*SnapshotEntry) {
+	res, err := d.DB.Txn(false).Get(tableSnapshotEntry, "base_slot", slot)
+	if err != nil {
+		panic("getting best snapshots failed: " + err.Error())
+	}
+
+	for entry := res.Next(); entry != nil; entry = res.Next() {
+		entries = append(entries, entry.(*SnapshotEntry))
+	}
+	return
+}
+
 // DeleteOldSnapshots delete snapshot entry older than the given timestamp.
 func (d *DB) DeleteOldSnapshots(minTime time.Time) (n int) {
 	txn := d.DB.Txn(true)

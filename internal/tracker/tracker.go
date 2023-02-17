@@ -46,7 +46,18 @@ func (h *Handler) RegisterHandlers(group gin.IRoutes) {
 }
 
 func (h *Handler) GetSnapshots(c *gin.Context) {
-	c.JSON(http.StatusOK, h.DB.GetAllSnapshots())
+	var query struct {
+		Slot uint64 `form:"slot"`
+	}
+	if err := c.BindQuery(&query); err != nil {
+		return
+	}
+
+	if query.Slot == 0 {
+		c.JSON(http.StatusOK, h.DB.GetAllSnapshots())
+	} else {
+		c.JSON(http.StatusOK, h.DB.GetSnapshotsAtSlot(query.Slot))
+	}
 }
 
 // GetBestSnapshots returns the currently available best snapshots.
@@ -58,7 +69,7 @@ func (h *Handler) GetBestSnapshots(c *gin.Context) {
 		return
 	}
 	const maxItems = 25
-	if query.Max < 0 || query.Max > 25 {
+	if query.Max < 0 || query.Max > maxItems {
 		query.Max = maxItems
 	}
 	entries := h.DB.GetBestSnapshots(query.Max)
