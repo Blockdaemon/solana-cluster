@@ -114,6 +114,9 @@ func run() {
 		}
 
 		// @TODO check if this snapshot already exists
+		buf, _ := json.MarshalIndent(remoteSnaps, "", "\t")
+		log.Info("Downloading a snapshot", zap.ByteString("snap", buf))
+
 	} else {
 		log.Info("Finding best snapshot")
 
