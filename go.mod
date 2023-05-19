@@ -13,7 +13,7 @@ require (
 	github.com/spf13/afero v1.9.5
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	github.com/vbauerster/mpb/v7 v7.5.3
 	go.uber.org/atomic v1.11.0
 	go.uber.org/zap v1.24.0
