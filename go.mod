@@ -6,7 +6,7 @@ require (
 	github.com/gagliardetto/solana-go v1.8.2
 	github.com/gin-contrib/zap v0.1.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/hashicorp/consul/api v1.20.0
+	github.com/hashicorp/consul/api v1.21.0
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/minio/minio-go/v7 v7.0.55
 	github.com/prometheus/client_golang v1.15.1
