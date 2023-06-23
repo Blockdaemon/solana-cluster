@@ -8,7 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/hashicorp/consul/api v1.21.0
 	github.com/hashicorp/go-memdb v1.3.4
-	github.com/minio/minio-go/v7 v7.0.56
+	github.com/minio/minio-go/v7 v7.0.58
 	github.com/prometheus/client_golang v1.16.0
 	github.com/spf13/afero v1.9.5
 	github.com/spf13/cobra v1.7.0
