@@ -6,7 +6,7 @@ require (
 	github.com/gagliardetto/solana-go v1.8.3
 	github.com/gin-contrib/zap v0.1.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/hashicorp/consul/api v1.23.0
+	github.com/hashicorp/consul/api v1.24.0
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/minio/minio-go/v7 v7.0.61
 	github.com/prometheus/client_golang v1.16.0
@@ -102,7 +102,7 @@ require (
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
-	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/net v0.13.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/term v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
