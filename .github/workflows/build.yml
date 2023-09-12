@@ -23,7 +23,7 @@ jobs:
             type=raw,value=latest
             type=ref,event=tag
 
-      - uses: docker/login-action@v2
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
