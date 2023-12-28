@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/consul/api v1.26.1
 	github.com/hashicorp/go-memdb v1.3.4
 	github.com/minio/minio-go/v7 v7.0.66
-	github.com/prometheus/client_golang v1.17.0
+	github.com/prometheus/client_golang v1.18.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
