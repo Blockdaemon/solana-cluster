@@ -17,10 +17,10 @@ jobs:
       - uses: actions/setup-go@v5
       - uses: actions/checkout@v4
         with:
-          go-version: 1.20.x
+          go-version: 1.21.x
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v4
         with:
-          version: v1.52.2
+          version: v1.56.2
           args: --timeout 5m0s
           only-new-issues: true
