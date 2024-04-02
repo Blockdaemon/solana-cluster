@@ -3,7 +3,7 @@ module go.blockdaemon.com/solana/cluster-manager
 go 1.21
 
 require (
-	github.com/gagliardetto/solana-go v1.9.3
+	github.com/gagliardetto/solana-go v1.10.0
 	github.com/gin-contrib/zap v1.1.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/hashicorp/consul/api v1.28.2
@@ -39,7 +39,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
-	github.com/gagliardetto/binary v0.7.9 // indirect
+	github.com/gagliardetto/binary v0.8.0 // indirect
 	github.com/gagliardetto/treeout v0.1.4 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
