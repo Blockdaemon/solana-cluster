@@ -24,6 +24,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 	"github.com/vbauerster/mpb/v7"
 	"github.com/vbauerster/mpb/v7/decor"
@@ -101,6 +102,12 @@ func run() {
 			SetHostURL(trackerURL).
 			SetTimeout(requestTimeout),
 	)
+
+	// If we are not downloading a full snap and we don't have a specific snapshot defined
+	// we want to guess the snapshot slot to use as base, we will use the base slot
+	if baseSlot == 0 && !fullSnap {
+		baseSlot = localSnaps[0].BaseSlot
+	}
 
 	var remoteSnaps []types.SnapshotSource
 
@@ -180,6 +187,7 @@ func run() {
 			log.Fatal("Failed to request snapshot info", zap.Error(err))
 		}
 
+		spew.Dump(remoteSnaps)
 		if len(remoteSnaps) == 0 {
 			log.Fatal("No incremental snapshot found")
 		}
