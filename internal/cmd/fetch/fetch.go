@@ -24,7 +24,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 	"github.com/vbauerster/mpb/v7"
 	"github.com/vbauerster/mpb/v7/decor"
@@ -34,6 +33,7 @@ import (
 	"go.blockdaemon.com/solana/cluster-manager/types"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/term"
 	"gopkg.in/resty.v1"
 )
 
@@ -103,12 +103,6 @@ func run() {
 			SetTimeout(requestTimeout),
 	)
 
-	// If we are not downloading a full snap and we don't have a specific snapshot defined
-	// we want to guess the snapshot slot to use as base, we will use the base slot
-	if baseSlot == 0 && !fullSnap {
-		baseSlot = localSnaps[0].BaseSlot
-	}
-
 	var remoteSnaps []types.SnapshotSource
 
 	if baseSlot != 0 {
@@ -143,6 +137,26 @@ func run() {
 			log.Info("Existing snapshot is recent enough, no download needed",
 				zap.Uint64("existing_slot", localSnaps[0].Slot))
 			return
+		case fetch.AdviceRemoteIsOlder:
+			log.Info("Remote snapshot is older than local, no download possible")
+			return
+		case fetch.AdviceFetchFull:
+			if !fullSnap {
+				// If we are not fetching a full snapshot and the base slot isn't matching
+				// we need to fetch an older incremental snapshot.
+				log.Info("Full snapshot is newer than local, but not requested")
+				remoteSnaps, err = trackerClient.GetSnapshotAtSlot(ctx, localSnaps[0].BaseSlot)
+				if err != nil {
+					log.Fatal("Failed to request snapshot info", zap.Error(err))
+				}
+			}
+		case fetch.AdviceFetchIncremental:
+			log.Info("Full snapshot already found. No need for downloading.")
+			fullSnap = false // No need to fetch full snap
+			if !incrementalSnap {
+				log.Info("Incremental snapshot is newer than local, but only full is requested.")
+				return
+			}
 		case fetch.AdviceFetch:
 		}
 	}
@@ -154,51 +168,66 @@ func run() {
 	}
 
 	snap := &remoteSnaps[0]
-	buf, _ := json.MarshalIndent(snap, "", "\t")
-	log.Info("Downloading a snapshot", zap.ByteString("snap", buf), zap.String("target", snap.Target))
 
 	// Setup progress bars for download.
-	bars := mpb.New()
-	sidecarClient := fetch.NewSidecarClientWithOpts(snap.Target, fetch.SidecarClientOpts{
-		ProxyReaderFunc: func(name string, size int64, rd io.Reader) io.ReadCloser {
-			bar := bars.New(
-				size,
-				mpb.BarStyle(),
-				mpb.PrependDecorators(decor.Name(name)),
-				mpb.AppendDecorators(
-					decor.AverageSpeed(decor.UnitKB, "% .1f"),
-					decor.Percentage(),
-				),
-			)
-			return bar.ProxyReader(rd)
-		},
-	})
+	var fetchOpts fetch.SidecarClientOpts
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		bars := mpb.New()
+		fetchOpts = fetch.SidecarClientOpts{
+			ProxyReaderFunc: func(name string, size int64, rd io.Reader) io.ReadCloser {
+				bar := bars.New(
+					size,
+					mpb.BarStyle(),
+					mpb.PrependDecorators(decor.Name(name)),
+					mpb.AppendDecorators(
+						decor.AverageSpeed(decor.UnitKB, "% .1f"),
+						decor.Percentage(),
+					),
+				)
+				return bar.ProxyReader(rd)
+			},
+		}
+	}
+
+	sidecarClient := fetch.NewSidecarClientWithOpts(snap.Target, fetchOpts)
 
 	// First pass, if we're fetching fullSnap we want to fetch the fullSnaps but **not** the incremental snap
 	// Then after completion of the full snap download, we refetch the incremental one so we get the latest one
 	if fullSnap {
+		buf, _ := json.MarshalIndent(snap, "", "\t")
+		log.Info("Downloading full snapshot", zap.ByteString("snap", buf), zap.String("target", snap.Target))
+
 		downloadSnapshot(ctx, sidecarClient, snap, true, false)
 
-		// If we were downloading a full snapshot, check if there's a newer incremental snapshot we can fetch
-		// Find latest incremental snapshot
-		log.Info("Finding incremental snapshot for full slot", zap.Uint64("base_slot", snap.BaseSlot))
-		remoteSnaps, err = trackerClient.GetSnapshotAtSlot(ctx, snap.BaseSlot)
-		if err != nil {
-			log.Fatal("Failed to request snapshot info", zap.Error(err))
-		}
+		if incrementalSnap {
 
-		spew.Dump(remoteSnaps)
-		if len(remoteSnaps) == 0 {
-			log.Fatal("No incremental snapshot found")
-		}
+			// If we were downloading a full snapshot, check if there's a newer incremental snapshot we can fetch
+			// Find latest incremental snapshot
+			log.Info("Finding incremental snapshot for full slot", zap.Uint64("base_slot", snap.BaseSlot))
+			remoteSnaps, err = trackerClient.GetSnapshotAtSlot(ctx, snap.BaseSlot)
+			if err != nil {
+				log.Fatal("Failed to request snapshot info", zap.Error(err))
+			}
 
-		snap = &remoteSnaps[0]
-		buf, _ = json.MarshalIndent(snap, "", "\t")
-		log.Info("Downloading incremental snapshot", zap.ByteString("snap", buf), zap.String("target", snap.Target))
+			if len(remoteSnaps) == 0 {
+				log.Fatal("No incremental snapshot found")
+			}
+
+			snap = &remoteSnaps[0]
+		} else {
+			log.Info("Only full snapshot was requested, not fetching incremental snapshot")
+			return
+		}
 	}
 
-	// This will fetch the latest incremental snapshot (if fullSnap was specified it would already have been fetched and refreshed)
-	downloadSnapshot(ctx, sidecarClient, snap, false, true)
+	if incrementalSnap {
+		// Download incremental snapshot
+		buf, _ := json.MarshalIndent(snap, "", "\t")
+		log.Info("Downloading incremental snapshot", zap.ByteString("snap", buf), zap.String("target", snap.Target))
+
+		// This will fetch the latest incremental snapshot (if fullSnap was specified it would already have been fetched and refreshed)
+		downloadSnapshot(ctx, sidecarClient, snap, false, true)
+	}
 }
 
 func downloadSnapshot(ctx context.Context, sidecarClient *fetch.SidecarClient, snap *types.SnapshotSource, full bool, incremental bool) {

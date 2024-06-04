@@ -34,8 +34,10 @@ func ShouldFetchSnapshot(
 	// Compare local and remote slot numbers.
 	remoteSlot := remote[0].Slot
 	var localSlot uint64
+	var localBaseSlot uint64
 	if len(local) > 0 {
 		localSlot = local[0].Slot
+		localBaseSlot = local[0].BaseSlot
 	}
 
 	// Check if local is newer or remote is not new enough to be interesting.
@@ -48,6 +50,30 @@ func ShouldFetchSnapshot(
 	if maxAge < remoteSlot {
 		minSlot = remoteSlot - maxAge
 	}
+
+	// Check if we have a full snapshot new enough
+	if localBaseSlot < remote[0].BaseSlot {
+		advice = AdviceFetchFull
+		return
+	} else if localBaseSlot == remote[0].BaseSlot {
+		for _, l := range local[0].Files {
+			for _, r := range remote[0].Files {
+				if l.BaseSlot == 0 && r.BaseSlot == 0 {
+					if l.Hash == r.Hash {
+						// If the full snapshot base slot is the same and the hash is the same
+						// we can skip fetching the full snapshot.
+						advice = AdviceFetchIncremental
+						return
+					}
+				}
+			}
+		}
+	} else {
+		advice = AdviceRemoteIsOlder
+		return
+	}
+
+	// Our advice is to fetch both incremental and full snapshots.
 	advice = AdviceFetch
 	return
 }
@@ -56,7 +82,10 @@ func ShouldFetchSnapshot(
 type Advice int
 
 const (
-	AdviceFetch        = Advice(iota) // download a snapshot
-	AdviceNothingFound                // no snapshot available
-	AdviceUpToDate                    // local snapshot is up-to-date or newer, don't download
+	AdviceFetch            = Advice(iota) // download a snapshot
+	AdviceFetchFull                       // download a full snapshot
+	AdviceFetchIncremental                // download an incremental snapshot
+	AdviceRemoteIsOlder                   // remote snapshot is older than local
+	AdviceNothingFound                    // no snapshot available
+	AdviceUpToDate                        // local snapshot is up-to-date or newer, don't download
 )

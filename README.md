@@ -102,6 +102,23 @@ Flags:
       --tracker string     URL to tracker API
 ```
 
+## Snapshot fetching logic
+
+### If full=true, incremental=true (default)
+
+If the local ledger directory does not have the same full snapshot as the remote one, then fetch the full snapshot otherwise skip full snapshot fetching.
+
+If the local ledger does not have the latest incremental snapshot, fetch the latest incremnetal.
+
+### If full=false, incremental=true
+
+Fetch the latest incremental snapshot for the latest full snapshot locally available. Warn if this local snapshot is not the latest but do not fetch.
+
+### If full=true, incremental=false
+
+Fetch the latest full snapshot, unless it is already available in the local ledger and has the same hash.
+
+
 ## Architecture
 
 ### Snapshot management

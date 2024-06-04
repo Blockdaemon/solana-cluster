@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/davecgh/go-spew/spew"
 	"go.blockdaemon.com/solana/cluster-manager/types"
 	"gopkg.in/resty.v1"
 )
@@ -62,7 +61,6 @@ func (c *TrackerClient) GetSnapshotAtSlot(ctx context.Context, slot uint64) (sou
 		SetQueryParam("slot", strconv.FormatUint(slot, 10)).
 		SetResult(&sources).
 		Get("/v1/snapshots")
-	spew.Dump(sources)
 	if err != nil {
 		return nil, err
 	}
