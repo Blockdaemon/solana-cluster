@@ -55,7 +55,7 @@ func ShouldFetchSnapshot(
 	if localBaseSlot < remote[0].BaseSlot {
 		advice = AdviceFetchFull
 		return
-	} else if localBaseSlot == remote[0].BaseSlot {
+	} else if len(local) > 0 && localBaseSlot == remote[0].BaseSlot {
 		for _, l := range local[0].Files {
 			for _, r := range remote[0].Files {
 				if l.BaseSlot == 0 && r.BaseSlot == 0 {

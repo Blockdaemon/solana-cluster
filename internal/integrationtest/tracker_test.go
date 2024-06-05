@@ -106,6 +106,7 @@ func TestTracker(t *testing.T) {
 			{
 				SnapshotInfo: types.SnapshotInfo{
 					Slot: 103,
+					BaseSlot: 103,
 					Hash: solana.MustHashFromBase58("7w4zb1jh47zY5FPMPyRzDSmYf1CPirVP9LmTr5xWEs6X"),
 					Files: []*types.SnapshotFile{
 						{
@@ -122,6 +123,7 @@ func TestTracker(t *testing.T) {
 			{
 				SnapshotInfo: types.SnapshotInfo{
 					Slot: 102,
+					BaseSlot: 102,
 					Hash: solana.MustHashFromBase58("7sAawX1cAHVpfZGNtUAYKX2KPzdd1uPUZUTaLteWX4SB"),
 					Files: []*types.SnapshotFile{
 						{
@@ -138,6 +140,7 @@ func TestTracker(t *testing.T) {
 			{
 				SnapshotInfo: types.SnapshotInfo{
 					Slot: 101,
+					BaseSlot: 101,
 					Hash: solana.MustHashFromBase58("7oGBJ2HXGT17Fs9QNxu6RbH68z4rJxHZyc9gqhLWoFmq"),
 					Files: []*types.SnapshotFile{
 						{
@@ -154,6 +157,7 @@ func TestTracker(t *testing.T) {
 			{
 				SnapshotInfo: types.SnapshotInfo{
 					Slot: 100,
+					BaseSlot: 100,
 					Hash: solana.MustHashFromBase58("7jMmeXZSNcWPrB2RsTdeXfXrsyW5c1BfPjqoLW2X5T7V"),
 					Files: []*types.SnapshotFile{
 						{
@@ -172,7 +176,7 @@ func TestTracker(t *testing.T) {
 }
 
 func newTracker(db *index.DB) *httptest.Server {
-	handler := tracker.NewHandler(db)
+	handler := tracker.NewHandler(db, "http://localhost:8899", 1000)
 	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	handler.RegisterHandlers(engine.Group("/v1"))
