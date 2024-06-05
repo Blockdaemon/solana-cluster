@@ -66,7 +66,7 @@ func (h *Handler) GetSnapshots(c *gin.Context) {
 	}
 
 	var entries []*index.SnapshotEntry
-	 if query.Slot == 0 {
+	if query.Slot == 0 {
 		entries = h.DB.GetAllSnapshots()
 	} else {
 		entries = h.DB.GetSnapshotsAtSlot(query.Slot)
