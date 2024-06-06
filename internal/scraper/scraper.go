@@ -96,7 +96,7 @@ func (s *Scraper) scrape(ctx context.Context, results chan<- ProbeResult) {
 			infos, err := s.prober.Probe(ctx, target)
 			results <- ProbeResult{
 				Time:   time.Now(),
-				Target: target,
+				Target: s.prober.scheme + "://" + target,
 				Infos:  infos,
 				Err:    err,
 			}
