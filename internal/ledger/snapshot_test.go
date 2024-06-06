@@ -51,6 +51,7 @@ func TestListSnapshots(t *testing.T) {
 		[]*types.SnapshotInfo{
 			{
 				Slot:      300,
+				BaseSlot:  100,
 				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 				TotalSize: 3,
 				Files: []*types.SnapshotFile{
@@ -84,6 +85,7 @@ func TestListSnapshots(t *testing.T) {
 			},
 			{
 				Slot:      200,
+				BaseSlot:  100,
 				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 				TotalSize: 2,
 				Files: []*types.SnapshotFile{
@@ -108,6 +110,7 @@ func TestListSnapshots(t *testing.T) {
 			},
 			{
 				Slot:      100,
+				BaseSlot:  100,
 				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 				TotalSize: 1,
 				Files: []*types.SnapshotFile{
@@ -123,6 +126,7 @@ func TestListSnapshots(t *testing.T) {
 			},
 			{
 				Slot:      100,
+				BaseSlot:  50,
 				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 				TotalSize: 2,
 				Files: []*types.SnapshotFile{
@@ -147,6 +151,7 @@ func TestListSnapshots(t *testing.T) {
 			},
 			{
 				Slot:      50,
+				BaseSlot:  50,
 				Hash:      solana.MustHashFromBase58("AvFf9oS8A8U78HdjT9YG2sTTThLHJZmhaMn2g8vkWYnr"),
 				TotalSize: 1,
 				Files: []*types.SnapshotFile{

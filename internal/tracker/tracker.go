@@ -45,8 +45,34 @@ func (h *Handler) RegisterHandlers(group gin.IRoutes) {
 	group.GET("/health", h.Health)
 }
 
+func (h *Handler) createJson(c *gin.Context, entries []*index.SnapshotEntry) {
+	sources := make([]types.SnapshotSource, len(entries))
+	for i, entry := range entries {
+		sources[i] = types.SnapshotSource{
+			SnapshotInfo: *entry.Info,
+			Target:       entry.Target,
+			UpdatedAt:    entry.UpdatedAt,
+		}
+	}
+	c.JSON(http.StatusOK, sources)
+}
+
 func (h *Handler) GetSnapshots(c *gin.Context) {
-	c.JSON(http.StatusOK, h.DB.GetAllSnapshots())
+	var query struct {
+		Slot uint64 `form:"slot"`
+	}
+	if err := c.BindQuery(&query); err != nil {
+		return
+	}
+
+	var entries []*index.SnapshotEntry
+	if query.Slot == 0 {
+		entries = h.DB.GetAllSnapshots()
+	} else {
+		entries = h.DB.GetSnapshotsAtSlot(query.Slot)
+	}
+
+	h.createJson(c, entries)
 }
 
 // GetBestSnapshots returns the currently available best snapshots.
@@ -58,19 +84,11 @@ func (h *Handler) GetBestSnapshots(c *gin.Context) {
 		return
 	}
 	const maxItems = 25
-	if query.Max < 0 || query.Max > 25 {
+	if query.Max < 0 || query.Max > maxItems {
 		query.Max = maxItems
 	}
 	entries := h.DB.GetBestSnapshots(query.Max)
-	sources := make([]types.SnapshotSource, len(entries))
-	for i, entry := range entries {
-		sources[i] = types.SnapshotSource{
-			SnapshotInfo: *entry.Info,
-			Target:       entry.Target,
-			UpdatedAt:    entry.UpdatedAt,
-		}
-	}
-	c.JSON(http.StatusOK, sources)
+	h.createJson(c, entries)
 }
 
 func (h *Handler) Health(c *gin.Context) {

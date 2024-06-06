@@ -29,12 +29,14 @@ type SnapshotEntry struct {
 type SnapshotKey struct {
 	Target      string `json:"target"`
 	InverseSlot uint64 `json:"inverse_slot"` // newest-to-oldest sort
+	BaseSlot    uint64 `json:"base_slot"`
 }
 
-func NewSnapshotKey(target string, slot uint64) SnapshotKey {
+func NewSnapshotKey(target string, slot uint64, base_slot uint64) SnapshotKey {
 	return SnapshotKey{
 		Target:      target,
 		InverseSlot: ^slot,
+		BaseSlot:    base_slot,
 	}
 }
 

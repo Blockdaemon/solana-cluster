@@ -49,7 +49,7 @@ func TestShouldFetchSnapshot(t *testing.T) {
 			minAge:  500,
 			maxAge:  10000,
 			minSlot: 113456,
-			advice:  AdviceFetch,
+			advice:  AdviceFetchFull,
 		},
 		{
 			name:    "LowSlotNumber",
@@ -58,7 +58,7 @@ func TestShouldFetchSnapshot(t *testing.T) {
 			minAge:  50,
 			maxAge:  10000,
 			minSlot: 0,
-			advice:  AdviceFetch,
+			advice:  AdviceFetchFull,
 		},
 		{
 			name:    "Refresh",
@@ -67,7 +67,7 @@ func TestShouldFetchSnapshot(t *testing.T) {
 			minAge:  500,
 			maxAge:  10000,
 			minSlot: 113456,
-			advice:  AdviceFetch,
+			advice:  AdviceFetchFull,
 		},
 		{
 			name:    "NotNewEnough",
@@ -107,7 +107,8 @@ func fakeSnapshotInfo(slots []uint64) []*types.SnapshotInfo {
 	infos := make([]*types.SnapshotInfo, len(slots))
 	for i, slot := range slots {
 		infos[i] = &types.SnapshotInfo{
-			Slot: slot,
+			Slot:     slot,
+			BaseSlot: slot,
 		}
 	}
 	return infos
@@ -118,7 +119,8 @@ func fakeSnapshotSources(slots []uint64) []types.SnapshotSource {
 	for i, slot := range slots {
 		infos[i] = types.SnapshotSource{
 			SnapshotInfo: types.SnapshotInfo{
-				Slot: slot,
+				Slot:     slot,
+				BaseSlot: slot,
 			},
 		}
 	}

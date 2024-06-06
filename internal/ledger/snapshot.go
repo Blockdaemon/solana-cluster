@@ -26,7 +26,7 @@ import (
 	"go.blockdaemon.com/solana/cluster-manager/types"
 )
 
-// ListSnapshotFiles returns all snapshot files in a ledger dir.
+// ListSnapshotFiles returns all snapshot files in a ledger dir in sorted order.
 func ListSnapshotFiles(ledgerDir fs.FS) ([]*types.SnapshotFile, error) {
 	dirEntries, err := fs.ReadDir(ledgerDir, ".")
 	if err != nil {
@@ -94,6 +94,7 @@ func buildSnapshotInfo(files []*types.SnapshotFile, target *types.SnapshotFile) 
 	}
 	return &types.SnapshotInfo{
 		Slot:      target.Slot,
+		BaseSlot:  chain[len(chain)-1].Slot,
 		Hash:      target.Hash,
 		Files:     chain,
 		TotalSize: totalSize,

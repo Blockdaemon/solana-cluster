@@ -53,3 +53,19 @@ func (c *TrackerClient) GetBestSnapshots(ctx context.Context, count int) (source
 	}
 	return
 }
+
+func (c *TrackerClient) GetSnapshotAtSlot(ctx context.Context, slot uint64) (sources []types.SnapshotSource, err error) {
+	res, err := c.resty.R().
+		SetContext(ctx).
+		SetHeader("accept", "application/json").
+		SetQueryParam("slot", strconv.FormatUint(slot, 10)).
+		SetResult(&sources).
+		Get("/v1/snapshots")
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("get snapshots at slot %d: %s", slot, res.Status())
+	}
+	return
+}

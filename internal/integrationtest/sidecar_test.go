@@ -39,6 +39,7 @@ import (
 func TestSidecar(t *testing.T) {
 	server, root := newSidecar(t, 100)
 	defer server.Close()
+	fmt.Println("Server url", server.URL)
 	client := fetch.NewSidecarClientWithOpts(server.URL,
 		fetch.SidecarClientOpts{Resty: resty.NewWithClient(server.Client())})
 
@@ -51,6 +52,7 @@ func TestSidecar(t *testing.T) {
 			[]*types.SnapshotInfo{
 				{
 					Slot:      100,
+					BaseSlot:  100,
 					Hash:      solana.MustHashFromBase58("7jMmeXZSNcWPrB2RsTdeXfXrsyW5c1BfPjqoLW2X5T7V"),
 					TotalSize: 1,
 					Files: []*types.SnapshotFile{

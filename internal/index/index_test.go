@@ -26,7 +26,7 @@ import (
 var dummyTime1 = time.Date(2022, 4, 27, 15, 33, 20, 0, time.UTC)
 
 var snapshotEntry1 = &SnapshotEntry{
-	SnapshotKey: NewSnapshotKey("host1", 100),
+	SnapshotKey: NewSnapshotKey("host1", 100, 100),
 	UpdatedAt:   dummyTime1,
 	Info: &types.SnapshotInfo{
 		Slot:      100,
@@ -37,7 +37,7 @@ var snapshotEntry1 = &SnapshotEntry{
 }
 
 var snapshotEntry2 = &SnapshotEntry{
-	SnapshotKey: NewSnapshotKey("host1", 99),
+	SnapshotKey: NewSnapshotKey("host1", 99, 99),
 	UpdatedAt:   dummyTime1.Add(-20 * time.Second),
 	Info: &types.SnapshotInfo{
 		Slot:      99,
@@ -48,7 +48,7 @@ var snapshotEntry2 = &SnapshotEntry{
 }
 
 var snapshotEntry3 = &SnapshotEntry{
-	SnapshotKey: NewSnapshotKey("host2", 100),
+	SnapshotKey: NewSnapshotKey("host2", 100, 100),
 	UpdatedAt:   dummyTime1,
 	Info: &types.SnapshotInfo{
 		Slot:      100,

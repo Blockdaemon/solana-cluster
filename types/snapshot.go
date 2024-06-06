@@ -31,6 +31,7 @@ type SnapshotSource struct {
 // SnapshotInfo describes a snapshot.
 type SnapshotInfo struct {
 	Slot      uint64          `json:"slot"`
+	BaseSlot  uint64          `json:"base_slot"`
 	Hash      solana.Hash     `json:"hash"`
 	Files     []*SnapshotFile `json:"files"`
 	TotalSize uint64          `json:"size"`

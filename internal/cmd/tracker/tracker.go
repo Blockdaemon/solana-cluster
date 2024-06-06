@@ -53,7 +53,7 @@ var (
 	configPath     string
 	internalListen string
 	listen         string
-	rpc	       string
+	rpc            string
 	maxSnapshotAge uint64
 )
 
