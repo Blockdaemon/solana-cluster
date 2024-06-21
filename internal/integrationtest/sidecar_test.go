@@ -23,6 +23,7 @@ import (
 
 	"github.com/gagliardetto/solana-go"
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.blockdaemon.com/solana/cluster-manager/internal/fetch"
@@ -30,7 +31,6 @@ import (
 	"go.blockdaemon.com/solana/cluster-manager/internal/sidecar"
 	"go.blockdaemon.com/solana/cluster-manager/types"
 	"go.uber.org/zap/zaptest"
-	"gopkg.in/resty.v1"
 )
 
 // TestSidecar creates

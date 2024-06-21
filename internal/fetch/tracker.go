@@ -21,8 +21,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-resty/resty/v2"
 	"go.blockdaemon.com/solana/cluster-manager/types"
-	"gopkg.in/resty.v1"
 )
 
 // TrackerClient accesses the tracker API.

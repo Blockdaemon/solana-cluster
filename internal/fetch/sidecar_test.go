@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
-	"gopkg.in/resty.v1"
 )
 
 func TestConnectError(t *testing.T) {

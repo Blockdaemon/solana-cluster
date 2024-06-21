@@ -25,9 +25,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"go.blockdaemon.com/solana/cluster-manager/types"
 	"go.uber.org/zap"
-	"gopkg.in/resty.v1"
 )
 
 // TODO rewrite this package to use OpenAPI code gen

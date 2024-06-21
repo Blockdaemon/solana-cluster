@@ -24,15 +24,15 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cobra"
-	"github.com/vbauerster/mpb/v7"
-	"github.com/vbauerster/mpb/v7/decor"
+	"github.com/vbauerster/mpb/v8"
+	"github.com/vbauerster/mpb/v8/decor"
 	"go.blockdaemon.com/solana/cluster-manager/internal/fetch"
 	"go.blockdaemon.com/solana/cluster-manager/internal/ledger"
 	"go.blockdaemon.com/solana/cluster-manager/internal/logger"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/resty.v1"
 )
 
 var Cmd = cobra.Command{
@@ -122,7 +122,7 @@ func run() {
 				mpb.BarStyle(),
 				mpb.PrependDecorators(decor.Name(name)),
 				mpb.AppendDecorators(
-					decor.AverageSpeed(decor.UnitKB, "% .1f"),
+					decor.AverageSpeed(decor.SizeB1024(0), "% .1f"),
 					decor.Percentage(),
 				),
 			)
