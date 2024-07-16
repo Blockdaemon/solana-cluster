@@ -9,7 +9,7 @@ require (
 	github.com/go-resty/resty/v2 v2.13.1
 	github.com/hashicorp/consul/api v1.29.1
 	github.com/hashicorp/go-memdb v1.3.4
-	github.com/minio/minio-go/v7 v7.0.73
+	github.com/minio/minio-go/v7 v7.0.74
 	github.com/prometheus/client_golang v1.19.1
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
