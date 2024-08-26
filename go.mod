@@ -9,7 +9,7 @@ require (
 	github.com/go-resty/resty/v2 v2.14.0
 	github.com/hashicorp/consul/api v1.29.4
 	github.com/hashicorp/go-memdb v1.3.4
-	github.com/minio/minio-go/v7 v7.0.75
+	github.com/minio/minio-go/v7 v7.0.76
 	github.com/prometheus/client_golang v1.20.2
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.1
@@ -83,7 +83,7 @@ require (
 	github.com/prometheus/common v0.55.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/rs/xid v1.5.0 // indirect
+	github.com/rs/xid v1.6.0 // indirect
 	github.com/streamingfast/logging v0.0.0-20230608130331-f22c91403091 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
