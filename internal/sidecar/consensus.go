@@ -68,7 +68,7 @@ func (h *ConsensusHandler) GetSlotUpdates(c *gin.Context) {
 	defer slotUpdates.Unsubscribe()
 
 	c.Stream(func(w io.Writer) bool {
-		update, err := slotUpdates.Recv()
+		update, err := slotUpdates.Recv(c)
 		if err != nil {
 			h.Log.Error("Failed to receive slot update event", zap.Error(err))
 			return false
