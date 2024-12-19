@@ -28,6 +28,7 @@ import (
 
 // Prober checks snapshot info from Solana nodes.
 type Prober struct {
+	group string
 	client  *http.Client
 	scheme  string
 	apiPath string
@@ -77,6 +78,7 @@ func NewProber(group *types.TargetGroup) (*Prober, error) {
 	}
 
 	return &Prober{
+		group: 	 group.Group,
 		client:  client,
 		scheme:  group.Scheme,
 		apiPath: group.APIPath,

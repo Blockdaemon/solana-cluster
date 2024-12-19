@@ -26,7 +26,7 @@ import (
 var dummyTime1 = time.Date(2022, 4, 27, 15, 33, 20, 0, time.UTC)
 
 var snapshotEntry1 = &SnapshotEntry{
-	SnapshotKey: NewSnapshotKey("host1", 100, 100),
+	SnapshotKey: NewSnapshotKey("mainnet", "host1", 100, 100),
 	UpdatedAt:   dummyTime1,
 	Info: &types.SnapshotInfo{
 		Slot:      100,
@@ -37,7 +37,7 @@ var snapshotEntry1 = &SnapshotEntry{
 }
 
 var snapshotEntry2 = &SnapshotEntry{
-	SnapshotKey: NewSnapshotKey("host1", 99, 99),
+	SnapshotKey: NewSnapshotKey("mainnet", "host1", 99, 99),
 	UpdatedAt:   dummyTime1.Add(-20 * time.Second),
 	Info: &types.SnapshotInfo{
 		Slot:      99,
@@ -48,7 +48,7 @@ var snapshotEntry2 = &SnapshotEntry{
 }
 
 var snapshotEntry3 = &SnapshotEntry{
-	SnapshotKey: NewSnapshotKey("host2", 100, 100),
+	SnapshotKey: NewSnapshotKey("mainnet", "host2", 100, 100),
 	UpdatedAt:   dummyTime1,
 	Info: &types.SnapshotInfo{
 		Slot:      100,
@@ -58,24 +58,35 @@ var snapshotEntry3 = &SnapshotEntry{
 	},
 }
 
+var snapshotEntry4 = &SnapshotEntry{
+	SnapshotKey: NewSnapshotKey("devnet", "host1", 100, 100),
+	UpdatedAt:   dummyTime1,
+	Info: &types.SnapshotInfo{
+		Slot:      151,
+		Hash:      solana.Hash{0x03},
+		Files:     []*types.SnapshotFile{},
+		TotalSize: 0,
+	},
+}
+
 func TestDB(t *testing.T) {
 	db := NewDB()
 
-	assert.Equal(t, 0, db.DeleteSnapshotsByTarget("host1"))
-	assert.Equal(t, 0, db.DeleteSnapshotsByTarget("host2"))
+	assert.Equal(t, 0, db.DeleteSnapshotsByTarget("mainnet", "host1"))
+	assert.Equal(t, 0, db.DeleteSnapshotsByTarget("mainnet", "host2"))
 
-	assert.Len(t, db.GetSnapshotsByTarget("host1"), 0)
-	assert.Len(t, db.GetSnapshotsByTarget("host2"), 0)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host1"), 0)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host2"), 0)
 	assert.Len(t, db.GetBestSnapshots(-1), 0)
 
 	db.UpsertSnapshots(snapshotEntry1)
-	assert.Len(t, db.GetSnapshotsByTarget("host1"), 1)
-	assert.Len(t, db.GetSnapshotsByTarget("host2"), 0)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host1"), 1)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host2"), 0)
 	assert.Len(t, db.GetBestSnapshots(-1), 1)
 
 	db.UpsertSnapshots(snapshotEntry1, snapshotEntry2)
-	assert.Len(t, db.GetSnapshotsByTarget("host1"), 2)
-	assert.Len(t, db.GetSnapshotsByTarget("host2"), 0)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host1"), 2)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host2"), 0)
 	assert.Equal(t,
 		[]*SnapshotEntry{
 			snapshotEntry1,
@@ -84,8 +95,8 @@ func TestDB(t *testing.T) {
 		db.GetBestSnapshots(-1))
 
 	db.UpsertSnapshots(snapshotEntry2, snapshotEntry3)
-	assert.Len(t, db.GetSnapshotsByTarget("host1"), 2)
-	assert.Len(t, db.GetSnapshotsByTarget("host2"), 1)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host1"), 2)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host2"), 1)
 	assert.Equal(t,
 		[]*SnapshotEntry{
 			snapshotEntry1,
@@ -94,11 +105,25 @@ func TestDB(t *testing.T) {
 		},
 		db.GetBestSnapshots(-1))
 
-	assert.Equal(t, 2, db.DeleteSnapshotsByTarget("host1"))
-	assert.Len(t, db.GetSnapshotsByTarget("host1"), 0)
-	assert.Len(t, db.GetSnapshotsByTarget("host2"), 1)
+	// Add a devnet target and ensure the result is the same
+	db.UpsertSnapshots(snapshotEntry4)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host1"), 2)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host2"), 1)
 	assert.Equal(t,
 		[]*SnapshotEntry{
+			snapshotEntry4,
+			snapshotEntry1,
+			snapshotEntry3,
+			snapshotEntry2,
+		},
+		db.GetBestSnapshots(-1))
+
+	assert.Equal(t, 2, db.DeleteSnapshotsByTarget("mainnet", "host1"))
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host1"), 0)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host2"), 1)
+	assert.Equal(t,
+		[]*SnapshotEntry{
+			snapshotEntry4,
 			snapshotEntry3,
 		},
 		db.GetBestSnapshots(-1))
@@ -106,10 +131,11 @@ func TestDB(t *testing.T) {
 	db.UpsertSnapshots(snapshotEntry1, snapshotEntry2)
 
 	assert.Equal(t, 1, db.DeleteOldSnapshots(snapshotEntry2.UpdatedAt.Add(time.Second)))
-	assert.Len(t, db.GetSnapshotsByTarget("host1"), 1)
-	assert.Len(t, db.GetSnapshotsByTarget("host2"), 1)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host1"), 1)
+	assert.Len(t, db.GetSnapshotsByTarget("mainnet", "host2"), 1)
 	assert.Equal(t,
 		[]*SnapshotEntry{
+			snapshotEntry4,
 			snapshotEntry1,
 			snapshotEntry3,
 		},

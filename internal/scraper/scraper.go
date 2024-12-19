@@ -95,6 +95,7 @@ func (s *Scraper) scrape(ctx context.Context, results chan<- ProbeResult) {
 			defer wg.Done()
 			infos, err := s.prober.Probe(ctx, target)
 			results <- ProbeResult{
+				Group:  s.prober.group,
 				Time:   time.Now(),
 				Target: s.prober.scheme + "://" + target,
 				Infos:  infos,

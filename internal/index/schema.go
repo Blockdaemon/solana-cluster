@@ -28,6 +28,7 @@ var schema = memdb.DBSchema{
 					Unique: true,
 					Indexer: &memdb.CompoundIndex{
 						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "Group"},
 							&memdb.StringFieldIndex{Field: "Target"},
 							&memdb.UintFieldIndex{Field: "InverseSlot"},
 						},
@@ -43,6 +44,16 @@ var schema = memdb.DBSchema{
 					Name:    "base_slot",
 					Unique:  false,
 					Indexer: &memdb.UintFieldIndex{Field: "BaseSlot"},
+				},
+				"base_slot_by_group": {
+					Name:   "base_slot_by_group",
+					Unique: false,
+					Indexer: &memdb.CompoundIndex{
+						Indexes: []memdb.Indexer{
+							&memdb.StringFieldIndex{Field: "Group"},
+							&memdb.UintFieldIndex{Field: "BaseSlot"},
+						},
+					},
 				},
 			},
 		},

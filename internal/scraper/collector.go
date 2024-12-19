@@ -68,11 +68,11 @@ func (c *Collector) run() {
 		c.Log.Debug("Scrape success",
 			zap.String("target", res.Target),
 			zap.Int("num_snapshots", len(res.Infos)))
-		c.DB.DeleteSnapshotsByTarget(res.Target)
+		c.DB.DeleteSnapshotsByTarget(res.Group, res.Target)
 		entries := make([]*index.SnapshotEntry, len(res.Infos))
 		for i, info := range res.Infos {
 			entries[i] = &index.SnapshotEntry{
-				SnapshotKey: index.NewSnapshotKey(res.Target, info.Slot, info.BaseSlot),
+				SnapshotKey: index.NewSnapshotKey(res.Group, res.Target, info.Slot, info.BaseSlot),
 				Info:        info,
 				UpdatedAt:   res.Time,
 			}
@@ -84,6 +84,7 @@ func (c *Collector) run() {
 type ProbeResult struct {
 	Time   time.Time
 	Target string
+	Group string
 	Infos  []*types.SnapshotInfo
 	Err    error
 }

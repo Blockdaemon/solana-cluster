@@ -52,8 +52,8 @@ func (d *DB) UpsertSnapshots(entries ...*SnapshotEntry) {
 
 // GetSnapshotsByTarget returns all snapshots served by a host
 // ordered by newest to oldest.
-func (d *DB) GetSnapshotsByTarget(target string) (entries []*SnapshotEntry) {
-	res, err := d.DB.Txn(false).Get(tableSnapshotEntry, "id_prefix", target)
+func (d *DB) GetSnapshotsByTarget(group string, target string) (entries []*SnapshotEntry) {
+	res, err := d.DB.Txn(false).Get(tableSnapshotEntry, "id_prefix", group, target)
 	if err != nil {
 		panic("getting snapshots by target failed: " + err.Error())
 	}
@@ -114,6 +114,19 @@ func (d *DB) GetSnapshotsAtSlot(slot uint64) (entries []*SnapshotEntry) {
 	return
 }
 
+// Fetches the snapshots that are at a given slot.
+func (d *DB) GetSnapshotsAtSlotByGroup(group string, slot uint64) (entries []*SnapshotEntry) {
+	res, err := d.DB.Txn(false).Get(tableSnapshotEntry, "base_slot_by_group", group, slot)
+	if err != nil {
+		panic("getting best snapshots failed: " + err.Error())
+	}
+
+	for entry := res.Next(); entry != nil; entry = res.Next() {
+		entries = append(entries, entry.(*SnapshotEntry))
+	}
+	return
+}
+
 // DeleteOldSnapshots delete snapshot entry older than the given timestamp.
 func (d *DB) DeleteOldSnapshots(minTime time.Time) (n int) {
 	txn := d.DB.Txn(true)
@@ -140,10 +153,10 @@ func (d *DB) DeleteOldSnapshots(minTime time.Time) (n int) {
 
 // DeleteSnapshotsByTarget deletes all snapshots owned by a given target.
 // Returns the number of deletions made.
-func (d *DB) DeleteSnapshotsByTarget(target string) int {
+func (d *DB) DeleteSnapshotsByTarget(group string, target string) int {
 	txn := d.DB.Txn(true)
 	defer txn.Abort()
-	n, err := txn.DeleteAll(tableSnapshotEntry, "id_prefix", target)
+	n, err := txn.DeleteAll(tableSnapshotEntry, "id_prefix", group, target)
 	if err != nil {
 		panic("failed to delete snapshots by target: " + err.Error())
 	}
