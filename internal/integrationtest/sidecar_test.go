@@ -80,7 +80,7 @@ func TestSidecar(t *testing.T) {
 func newSidecar(t *testing.T, slots ...uint64) (server *httptest.Server, root *ledgertest.FS) {
 	root = ledgertest.NewFS(t)
 	for _, slot := range slots {
-		var fakeBin [8]byte
+		var fakeBin [32]byte
 		binary.LittleEndian.PutUint64(fakeBin[:], slot)
 		root.AddFakeFile(t, fmt.Sprintf("snapshot-%d-%s.tar.bz2", slot, solana.HashFromBytes(fakeBin[:])))
 	}
