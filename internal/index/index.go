@@ -86,8 +86,15 @@ func (d *DB) GetAllSnapshots() (entries []*SnapshotEntry) {
 // GetBestSnapshots returns newest-to-oldest snapshots.
 // The `max` argument controls the max number of snapshots to return.
 // If max is negative, it returns all snapshots.
-func (d *DB) GetBestSnapshots(max int) (entries []*SnapshotEntry) {
-	res, err := d.DB.Txn(false).Get(tableSnapshotEntry, "slot")
+func (d *DB) GetBestSnapshotsByGroup(max int, group string) (entries []*SnapshotEntry) {
+	var res memdb.ResultIterator
+	var err error
+	if group != "" {
+		res, err = d.DB.Txn(false).Get(tableSnapshotEntry, "slot_by_group", group)
+	} else {
+		res, err = d.DB.Txn(false).Get(tableSnapshotEntry, "slot")
+	}
+
 	if err != nil {
 		panic("getting best snapshots failed: " + err.Error())
 	}
@@ -102,8 +109,16 @@ func (d *DB) GetBestSnapshots(max int) (entries []*SnapshotEntry) {
 }
 
 // Fetches the snapshots that are at a given slot.
-func (d *DB) GetSnapshotsAtSlot(slot uint64) (entries []*SnapshotEntry) {
-	res, err := d.DB.Txn(false).Get(tableSnapshotEntry, "base_slot", slot)
+func (d *DB) GetSnapshotsAtSlotByGroup(group string, slot uint64) (entries []*SnapshotEntry) {
+	var res memdb.ResultIterator
+	var err error
+
+	if group != "" {
+		res, err = d.DB.Txn(false).Get(tableSnapshotEntry, "base_slot_by_group", slot, group)
+	} else {
+		res, err = d.DB.Txn(false).Get(tableSnapshotEntry, "base_slot", slot)
+	}
+
 	if err != nil {
 		panic("getting best snapshots failed: " + err.Error())
 	}
@@ -114,17 +129,14 @@ func (d *DB) GetSnapshotsAtSlot(slot uint64) (entries []*SnapshotEntry) {
 	return
 }
 
-// Fetches the snapshots that are at a given slot.
-func (d *DB) GetSnapshotsAtSlotByGroup(group string, slot uint64) (entries []*SnapshotEntry) {
-	res, err := d.DB.Txn(false).Get(tableSnapshotEntry, "base_slot_by_group", group, slot)
-	if err != nil {
-		panic("getting best snapshots failed: " + err.Error())
-	}
+// Fetches the best snapshots
+func (d *DB) GetBestSnapshots(max int) (entries []*SnapshotEntry) {
+	return d.GetBestSnapshotsByGroup(max, "")
+}
 
-	for entry := res.Next(); entry != nil; entry = res.Next() {
-		entries = append(entries, entry.(*SnapshotEntry))
-	}
-	return
+// Fetches the snapshots that are at a given slot.
+func (d *DB) GetSnapshotsAtSlot(slot uint64) (entries []*SnapshotEntry) {
+	return d.GetSnapshotsAtSlotByGroup("", slot)
 }
 
 // DeleteOldSnapshots delete snapshot entry older than the given timestamp.
