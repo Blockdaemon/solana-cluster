@@ -154,5 +154,5 @@ The solution: Co-located Solana validators that are controlled by the same entit
 Leveraging internal connectivity to distribute blockchain data can
 reduce public network _leeching_ and increase total cluster bandwidth.
 
-Authenticated internal connectivity allows delegation of expensive calculations and re-use of results thereof.
+Authenticated internal connectivity allows delegation of expensive calculations and reuse of results thereof.
 Concretely, the amount write-heavy snapshot creation & verification procedures per node can decrease as the cluster scales out.
