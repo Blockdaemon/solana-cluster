@@ -1,8 +1,7 @@
 module go.blockdaemon.com/solana/cluster-manager
 
 go 1.22.12
-
-toolchain go1.23.6
+toolchain go1.24.1
 
 require (
 	github.com/gagliardetto/solana-go v1.12.0
@@ -20,7 +19,7 @@ require (
 	github.com/vbauerster/mpb/v8 v8.9.3
 	go.uber.org/atomic v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.12.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
