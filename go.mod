@@ -1,8 +1,6 @@
 module go.blockdaemon.com/solana/cluster-manager
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.24.0
 
 require (
 	github.com/gagliardetto/solana-go v1.12.0
