@@ -3,7 +3,7 @@ module go.blockdaemon.com/solana/cluster-manager
 go 1.24.0
 
 require (
-	github.com/gagliardetto/solana-go v1.12.0
+	github.com/gagliardetto/solana-go v1.13.0
 	github.com/gin-contrib/zap v1.1.5
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-resty/resty/v2 v2.16.5
