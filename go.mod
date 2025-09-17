@@ -7,7 +7,7 @@ require (
 	github.com/gin-contrib/zap v1.1.5
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-resty/resty/v2 v2.16.5
-	github.com/hashicorp/consul/api v1.32.2
+	github.com/hashicorp/consul/api v1.32.3
 	github.com/hashicorp/go-memdb v1.3.5
 	github.com/minio/minio-go/v7 v7.0.95
 	github.com/prometheus/client_golang v1.23.2
