@@ -56,8 +56,8 @@ github.com/gabriel-vasile/mimetype v1.4.8 h1:FfZ3gj38NjllZIeJAmMhr+qKL8Wu+nOoI3G
 github.com/gabriel-vasile/mimetype v1.4.8/go.mod h1:ByKUIKGjh1ODkGM1asKUbQZOLGrPjydw3hYPU2YU9t8=
 github.com/gagliardetto/binary v0.8.0 h1:U9ahc45v9HW0d15LoN++vIXSJyqR/pWw8DDlhd7zvxg=
 github.com/gagliardetto/binary v0.8.0/go.mod h1:2tfj51g5o9dnvsc+fL3Jxr22MuWzYXwx9wEoN0XQ7/c=
-github.com/gagliardetto/solana-go v1.13.0 h1:uNzhjwdAdbq9xMaX2DF0MwXNMw6f8zdZ7JPBtkJG7Ig=
-github.com/gagliardetto/solana-go v1.13.0/go.mod h1:l/qqqIN6qJJPtxW/G1PF4JtcE3Zg2vD2EliZrr9Gn5k=
+github.com/gagliardetto/solana-go v1.14.0 h1:3WfAi70jOOjAJ0deFMjdhFYlLXATF4tOQXsDNWJtOLw=
+github.com/gagliardetto/solana-go v1.14.0/go.mod h1:l/qqqIN6qJJPtxW/G1PF4JtcE3Zg2vD2EliZrr9Gn5k=
 github.com/gagliardetto/treeout v0.1.4 h1:ozeYerrLCmCubo1TcIjFiOWTTGteOOHND1twdFpgwaw=
 github.com/gagliardetto/treeout v0.1.4/go.mod h1:loUefvXTrlRG5rYmJmExNryyBRh8f89VZhmMOyCyqok=
 github.com/gin-contrib/sse v1.1.0 h1:n0w2GMuUpWDVp7qSpvze6fAu9iRxJY4Hmj6AmBOU05w=
