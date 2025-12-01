@@ -4,7 +4,7 @@ go 1.25.3
 
 require (
 	github.com/gagliardetto/solana-go v1.14.0
-	github.com/gin-contrib/zap v1.1.5
+	github.com/gin-contrib/zap v1.1.6
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-resty/resty/v2 v2.17.0
 	github.com/hashicorp/consul/api v1.33.0
