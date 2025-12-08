@@ -18,7 +18,7 @@ require (
 	github.com/vbauerster/mpb/v8 v8.11.2
 	go.uber.org/atomic v1.11.0
 	go.uber.org/zap v1.27.1
-	golang.org/x/sync v0.18.0
+	golang.org/x/sync v0.19.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
