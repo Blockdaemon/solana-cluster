@@ -68,6 +68,7 @@ func (c *Collector) run() {
 		c.Log.Debug("Scrape success",
 			zap.String("target", res.Target),
 			zap.Int("num_snapshots", len(res.Infos)))
+		snapshotsFound.WithLabelValues(res.Group).Add(float64(len(res.Infos)))
 		c.DB.DeleteSnapshotsByTarget(res.Group, res.Target)
 		entries := make([]*index.SnapshotEntry, len(res.Infos))
 		for i, info := range res.Infos {

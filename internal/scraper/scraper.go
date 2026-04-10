@@ -83,6 +83,8 @@ func (s *Scraper) scrape(ctx context.Context, results chan<- ProbeResult) {
 		return
 	}
 
+	targetsDiscovered.WithLabelValues(s.prober.group).Set(float64(len(targets)))
+
 	scrapeStart := time.Now()
 	s.Log.Debug("Scrape starting",
 		zap.Duration("discovery_duration", time.Since(discoveryStart)),
