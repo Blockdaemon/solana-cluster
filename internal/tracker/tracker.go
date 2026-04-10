@@ -138,6 +138,14 @@ func (h *Handler) Health(c *gin.Context) {
 		}
 		health.CurrentSlot = out
 
+		group := query.Group
+		if group == "" {
+			group = entries[0].Group
+		}
+		if health.CurrentSlot >= health.MaxSnapshot {
+			snapshotAge.WithLabelValues(group).Set(float64(health.CurrentSlot - health.MaxSnapshot))
+		}
+
 		if (health.CurrentSlot - health.MaxSnapshot) > h.MaxSnapshotAge {
 			health.Health = "snapshot too old"
 			c.JSON(http.StatusServiceUnavailable, health)
